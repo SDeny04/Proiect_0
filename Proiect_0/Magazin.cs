@@ -1,64 +1,78 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 
 namespace MagazinConsole
 {
     public class Magazin
     {
-        string fisier = "produse.txt";
+        private List<Produs> produse = new List<Produs>();
 
         public void AdaugaProdus(Produs p)
         {
-            string linie = $"{p.Id};{p.Nume};{p.Categorie};{p.Pret}";
-            File.AppendAllText(fisier, linie + Environment.NewLine);
-
+            produse.Add(p);
             Console.WriteLine("Produs adaugat!");
         }
 
         public void AfiseazaProduse()
         {
-            if (!File.Exists(fisier))
+            if (produse.Count == 0)
             {
                 Console.WriteLine("Nu exista produse.");
                 return;
             }
 
-            string[] linii = File.ReadAllLines(fisier);
-
-            foreach (string linie in linii)
+            foreach (Produs p in produse)
             {
-                string[] date = linie.Split(';');
-
-                Console.WriteLine(
-                    $"ID: {date[0]} | " +
-                    $"Nume: {date[1]} | " +
-                    $"Categorie: {date[2]} | " +
-                    $"Pret: {date[3]} RON"
-                );
+                p.Afisare();
             }
         }
 
         public void StergeProdus(int id)
         {
-            if (!File.Exists(fisier))
-                return;
+            Produs gasit = produse.Find(p => p.Id == id);
 
-            string[] linii = File.ReadAllLines(fisier);
-
-            using (StreamWriter writer = new StreamWriter(fisier))
+            if (gasit != null)
             {
-                foreach (string linie in linii)
-                {
-                    string[] date = linie.Split(';');
+                produse.Remove(gasit);
+                Console.WriteLine("Produs sters.");
+            }
+            else
+            {
+                Console.WriteLine("Produsul nu exista.");
+            }
+        }
 
-                    if (int.Parse(date[0]) != id)
-                    {
-                        writer.WriteLine(linie);
-                    }
+        public void CautaDupaNume(string nume)
+        {
+            foreach (Produs p in produse)
+            {
+                if (p.Nume.ToLower().Contains(nume.ToLower()))
+                {
+                    p.Afisare();
                 }
             }
+        }
 
-            Console.WriteLine("Produs sters.");
+        public void CautaDupaCategorie(Categorie categorie)
+        {
+            foreach (Produs p in produse)
+            {
+                if (p.CategorieProdus == categorie)
+                {
+                    p.Afisare();
+                }
+            }
+        }
+
+        public void CautaDupaPret(double pretMax)
+        {
+            foreach (Produs p in produse)
+            {
+                if (p.Pret <= pretMax)
+                {
+                    p.Afisare();
+                }
+            }
         }
     }
 }

@@ -6,72 +6,92 @@ namespace MagazinConsole
     {
         static void Main()
         {
-            string rol = Utilizator.Login();
-
-            if (rol == null)
-                return;
-
             Magazin magazin = new Magazin();
             int optiune;
 
             do
             {
-                Console.WriteLine("\n=== MENIU ===");
+                Console.WriteLine("\n=== MENIU MAGAZIN ===");
+                Console.WriteLine("1 Adauga produs");
+                Console.WriteLine("2 Afiseaza produse");
+                Console.WriteLine("3 Sterge produs");
+                Console.WriteLine("4 Cauta dupa nume");
+                Console.WriteLine("5 Cauta dupa categorie");
+                Console.WriteLine("6 Cauta dupa pret");
+                Console.WriteLine("0 Iesire");
 
-                if (rol == "admin")
-                {
-                    Console.WriteLine("1. Adauga produs");
-                    Console.WriteLine("2. Afiseaza produse");
-                    Console.WriteLine("3. Sterge produs");
-                    Console.WriteLine("0. Iesire");
-                }
-                else
-                {
-                    Console.WriteLine("1. Afiseaza produse");
-                    Console.WriteLine("0. Iesire");
-                }
-
-                Console.Write("Alege optiunea: ");
+                Console.Write("Optiune: ");
                 optiune = int.Parse(Console.ReadLine());
 
-                if (rol == "admin")
+                switch (optiune)
                 {
-                    switch (optiune)
-                    {
-                        case 1:
-                            Console.Write("ID produs: ");
-                            int id = int.Parse(Console.ReadLine());
+                    case 1:
 
-                            Console.Write("Nume produs: ");
-                            string nume = Console.ReadLine();
+                        Console.Write("ID: ");
+                        int id = int.Parse(Console.ReadLine());
 
-                            Console.Write("Categorie: ");
-                            string categorie = Console.ReadLine();
+                        Console.Write("Nume: ");
+                        string nume = Console.ReadLine();
 
-                            Console.Write("Pret: ");
-                            double pret = double.Parse(Console.ReadLine());
+                        Console.WriteLine("Alege categoria:");
+                        Console.WriteLine("1 Procesor");
+                        Console.WriteLine("2 Placa Video");
+                        Console.WriteLine("3 RAM");
+                        Console.WriteLine("4 Placa de baza");
+                        Console.WriteLine("5 Sursa");
+                        Console.WriteLine("6 Stocare");
+                        Console.WriteLine("7 Periferice");
 
-                            Produs p = new Produs(id, nume, categorie, pret);
-                            magazin.AdaugaProdus(p);
-                            break;
+                        int categorieInput = int.Parse(Console.ReadLine());
 
-                        case 2:
-                            magazin.AfiseazaProduse();
-                            break;
+                        Categorie categorie = (Categorie)categorieInput;
 
-                        case 3:
-                            Console.Write("ID produs de sters: ");
-                            int idStergere = int.Parse(Console.ReadLine());
-                            magazin.StergeProdus(idStergere);
-                            break;
-                    }
-                }
-                else
-                {
-                    if (optiune == 1)
-                    {
+                        Console.Write("Pret: ");
+                        double pret = double.Parse(Console.ReadLine());
+
+                        Produs p = new Produs(id, nume, categorie, pret);
+                        magazin.AdaugaProdus(p);
+
+                        break;
+
+                    case 2:
                         magazin.AfiseazaProduse();
-                    }
+                        break;
+
+                    case 3:
+                        Console.Write("ID produs de sters: ");
+                        int idStergere = int.Parse(Console.ReadLine());
+                        magazin.StergeProdus(idStergere);
+                        break;
+
+                    case 4:
+                        Console.Write("Nume produs: ");
+                        string cautaNume = Console.ReadLine();
+                        magazin.CautaDupaNume(cautaNume);
+                        break;
+
+                    case 5:
+
+                        Console.WriteLine("Categorie:");
+                        Console.WriteLine("1 Procesor");
+                        Console.WriteLine("2 Placa Video");
+                        Console.WriteLine("3 RAM");
+                        Console.WriteLine("4 Placa de baza");
+                        Console.WriteLine("5 Sursa");
+                        Console.WriteLine("6 Stocare");
+                        Console.WriteLine("7 Periferice");
+
+                        int cat = int.Parse(Console.ReadLine());
+
+                        magazin.CautaDupaCategorie((Categorie)cat);
+
+                        break;
+
+                    case 6:
+                        Console.Write("Pret maxim: ");
+                        double pretMax = double.Parse(Console.ReadLine());
+                        magazin.CautaDupaPret(pretMax);
+                        break;
                 }
 
             } while (optiune != 0);
