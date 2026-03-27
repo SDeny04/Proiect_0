@@ -42,10 +42,10 @@ namespace Magazin.Logic
         }
         public void ModificaProdus(int id, string nume = null, Categorie? categorie = null, double? pret = null, Optiuni? optiuni = null)
         {
-            // Preluăm lista o singură dată
+            
             var produse = stocare.GetProduse();
 
-            // Căutăm produsul în lista preluată
+            
             var produs = produse.FirstOrDefault(p => p.Id == id);
 
             if (produs == null)
@@ -54,7 +54,7 @@ namespace Magazin.Logic
                 return;
             }
 
-            // Modificăm doar câmpurile specificate
+            
             if (!string.IsNullOrWhiteSpace(nume))
                 produs.Nume = nume;
             if (categorie.HasValue)
@@ -64,7 +64,7 @@ namespace Magazin.Logic
             if (optiuni.HasValue)
                 produs.OptiuniProdus = optiuni.Value;
 
-            // Rescriem fișierul folosind lista deja modificată din memorie
+            
             File.WriteAllLines("produse.txt",
                 produse.Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus}"));
         }

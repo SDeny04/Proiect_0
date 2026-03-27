@@ -14,7 +14,7 @@ namespace Magazin.Models
         public string Nume { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
-        public string Parola { get; set; } // Într-o aplicație reală, aceasta se criptează!
+        public string Parola { get; set; }
         public TipRol Rol { get; set; }
 
         public Utilizator(int id, string nume, string username, string email, string parola, TipRol rol)

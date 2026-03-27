@@ -6,8 +6,8 @@ namespace Magazin.Models
     public class Comanda
     {
         public int Id { get; set; }
-        public int IdClient { get; set; } // Legătura cu Utilizatorul
-        public List<int> IdProduse { get; set; } // Lista ID-urilor produselor cumpărate
+        public int IdClient { get; set; }
+        public List<int> IdProduse { get; set; }
         public DateTime DataComenzii { get; set; }
         public double Total { get; set; }
 

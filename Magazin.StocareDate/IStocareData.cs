@@ -7,5 +7,11 @@ namespace Magazin.StocareDate
     {
         void AdaugaProdus(Produs produs);
         List<Produs> GetProduse();
+
+        void AdaugaUtilizator(Utilizator utilizator);
+        List<Utilizator> GetUtilizatori();
+
+        void AdaugaComanda(Comanda comanda);
+        List<Comanda> GetComenzi();
     }
 }

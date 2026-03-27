@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Magazin.Models;
 
 namespace Magazin.StocareDate
 {
     public class AdministrareProduseFisierText : IStocareData
     {
-        private const string NUME_FISIER = "produse.txt";
+        private const string FISIER_PRODUSE = "produse.txt";
+        private const string FISIER_UTILIZATORI = "utilizatori.txt";
+        private const string FISIER_COMENZI = "comenzi.txt";
 
         public void AdaugaProdus(Produs produs)
         {
-            using (StreamWriter sw = new StreamWriter(NUME_FISIER, true))
+            using (StreamWriter sw = new StreamWriter(FISIER_PRODUSE, true))
             {
                 sw.WriteLine($"{produs.Id};{produs.Nume};{produs.CategorieProdus};{produs.Pret};{produs.OptiuniProdus}");
             }
@@ -20,11 +23,11 @@ namespace Magazin.StocareDate
         public List<Produs> GetProduse()
         {
             List<Produs> produse = new List<Produs>();
-            if (!File.Exists(NUME_FISIER))
-                return produse;
+            if (!File.Exists(FISIER_PRODUSE)) return produse;
 
-            foreach (var linie in File.ReadAllLines(NUME_FISIER))
+            foreach (var linie in File.ReadAllLines(FISIER_PRODUSE))
             {
+                if (string.IsNullOrWhiteSpace(linie)) continue;
                 string[] campuri = linie.Split(';');
                 int id = int.Parse(campuri[0]);
                 string nume = campuri[1];
@@ -32,11 +35,74 @@ namespace Magazin.StocareDate
                 double pret = double.Parse(campuri[3]);
                 Optiuni optiuni = (Optiuni)Enum.Parse(typeof(Optiuni), campuri[4]);
 
-                var produs = new Produs(nume, categorie, pret, optiuni) { Id = id };
-                produse.Add(produs);
+                produse.Add(new Produs(nume, categorie, pret, optiuni) { Id = id });
             }
-
             return produse;
+        }
+
+        public void AdaugaUtilizator(Utilizator utilizator)
+        {
+            using (StreamWriter sw = new StreamWriter(FISIER_UTILIZATORI, true))
+            {
+                sw.WriteLine($"{utilizator.Id};{utilizator.Nume};{utilizator.Username};{utilizator.Email};{utilizator.Parola};{utilizator.Rol}");
+            }
+        }
+
+        public List<Utilizator> GetUtilizatori()
+        {
+            List<Utilizator> utilizatori = new List<Utilizator>();
+            if (!File.Exists(FISIER_UTILIZATORI)) return utilizatori;
+
+            foreach (var linie in File.ReadAllLines(FISIER_UTILIZATORI))
+            {
+                if (string.IsNullOrWhiteSpace(linie)) continue;
+                string[] campuri = linie.Split(';');
+                int id = int.Parse(campuri[0]);
+                string nume = campuri[1];
+                string username = campuri[2];
+                string email = campuri[3];
+                string parola = campuri[4];
+                TipRol rol = (TipRol)Enum.Parse(typeof(TipRol), campuri[5]);
+
+                utilizatori.Add(new Utilizator(id, nume, username, email, parola, rol));
+            }
+            return utilizatori;
+        }
+
+        public void AdaugaComanda(Comanda comanda)
+        {
+            using (StreamWriter sw = new StreamWriter(FISIER_COMENZI, true))
+            {
+                
+                string produseString = string.Join(",", comanda.IdProduse);
+                sw.WriteLine($"{comanda.Id};{comanda.IdClient};{produseString};{comanda.DataComenzii};{comanda.Total}");
+            }
+        }
+
+        public List<Comanda> GetComenzi()
+        {
+            List<Comanda> comenzi = new List<Comanda>();
+            if (!File.Exists(FISIER_COMENZI)) return comenzi;
+
+            foreach (var linie in File.ReadAllLines(FISIER_COMENZI))
+            {
+                if (string.IsNullOrWhiteSpace(linie)) continue;
+                string[] campuri = linie.Split(';');
+                int id = int.Parse(campuri[0]);
+                int idClient = int.Parse(campuri[1]);
+
+                List<int> idProduse = new List<int>();
+                if (!string.IsNullOrWhiteSpace(campuri[2]))
+                {
+                    idProduse = campuri[2].Split(',').Select(int.Parse).ToList();
+                }
+
+                DateTime data = DateTime.Parse(campuri[3]);
+                double total = double.Parse(campuri[4]);
+
+                comenzi.Add(new Comanda(id, idClient, idProduse, total) { DataComenzii = data });
+            }
+            return comenzi;
         }
     }
 }
