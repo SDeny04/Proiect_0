@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Magazin.Models\Magazin.Models.csproj" />
-    <ProjectReference Include="..\Magazin.StocareDate\Magazin.StocareDate.csproj" />
   </ItemGroup>
 
 </Project>

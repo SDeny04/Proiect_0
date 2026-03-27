@@ -2,27 +2,25 @@
 
 namespace Magazin.Models
 {
+    [Flags]
+    public enum Optiuni
+    {
+        Niciuna = 0,
+        Garantie = 1,
+        SuportDrivere = 2,
+        LivrareRapida = 4,
+        Returnare14Zile = 8
+    }
+
     public enum Categorie
     {
-        Procesor = 1,
+        Procesor,
         PlacaVideo,
         RAM,
         PlacaDeBaza,
         Sursa,
         Stocare,
         Periferice
-    }
-
-    [Flags]
-    public enum Optiuni
-    {
-        Nimic = 0,
-        Garantie = 1,
-        SuportDrivere = 2,
-        LivrareGratuita = 4,
-        Retur30Zile = 8,
-        MontajInclus = 16,
-        Discount = 32
     }
 
     public class Produs
@@ -43,7 +41,7 @@ namespace Magazin.Models
 
         public override string ToString()
         {
-            return $"{Id} | {Nume} | {CategorieProdus} | {Pret} RON | Optiuni: {OptiuniProdus}";
+            return $"{Id}: {Nume} - {CategorieProdus} - {Pret} RON - Optiuni: {OptiuniProdus}";
         }
     }
 }

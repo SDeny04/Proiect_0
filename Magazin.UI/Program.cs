@@ -1,167 +1,185 @@
 ﻿using System;
-using Magazin.Logic;
 using Magazin.Models;
+using Magazin.Logic;
 
-namespace Magazin.UI
+namespace Magazin.ConsoleApp
 {
     class Program
     {
         static void Main()
         {
-            MagazinService magazin = new MagazinService();
-            int optiune;
+            MagazinAdmin magazin = new MagazinAdmin();
+            bool ruleaza = true;
 
-            do
+            while (ruleaza)
             {
-                System.Console.WriteLine("\n=== MENIU MAGAZIN ===");
-                System.Console.WriteLine("1. Adauga produs");
-                System.Console.WriteLine("2. Afiseaza produse");
-                System.Console.WriteLine("3. Sterge produs");
-                System.Console.WriteLine("4. Cauta dupa nume");
-                System.Console.WriteLine("5. Cauta dupa categorie");
-                System.Console.WriteLine("6. Cauta dupa pret");
-                System.Console.WriteLine("7. Cauta dupa optiuni");
-                System.Console.WriteLine("0. Iesire");
+                Console.WriteLine("\n=== Magazin Componente PC ===");
+                Console.WriteLine("1. Adauga produs");
+                Console.WriteLine("2. Sterge produs");
+                Console.WriteLine("3. Afiseaza produse");
+                Console.WriteLine("4. Cauta dupa nume");
+                Console.WriteLine("5. Cauta dupa categorie");
+                Console.WriteLine("6. Cauta dupa pret maxim");
+                Console.WriteLine("7. Cauta dupa optiuni");
+                Console.WriteLine("8. Modifica produs");
+                Console.WriteLine("0. Iesire");
+                Console.Write("Optiune: ");
+                string opt = Console.ReadLine();
 
-                System.Console.Write("Optiune: ");
-                optiune = int.Parse(System.Console.ReadLine());
-
-                switch (optiune)
+                switch (opt)
                 {
-                    case 1:
-                        
-                        System.Console.Write("Nume produs: ");
-                        string nume = System.Console.ReadLine();
+                    case "1":
+                        Console.Write("Nume produs: ");
+                        string nume = Console.ReadLine();
 
-                        System.Console.WriteLine("Categorie:");
-                        System.Console.WriteLine("1 Procesor");
-                        System.Console.WriteLine("2 Placa Video");
-                        System.Console.WriteLine("3 RAM");
-                        System.Console.WriteLine("4 Placa de baza");
-                        System.Console.WriteLine("5 Sursa");
-                        System.Console.WriteLine("6 Stocare");
-                        System.Console.WriteLine("7 Periferice");
+                        Console.WriteLine("Categorie (0=Procesor, 1=PlacaVideo, 2=RAM, 3=PlacaDeBaza, 4=Sursa, 5=Stocare, 6=Periferice):");
+                        int cat = int.Parse(Console.ReadLine());
 
-                        int cat = int.Parse(System.Console.ReadLine());
+                        Console.Write("Pret: ");
+                        double pret = double.Parse(Console.ReadLine());
 
-                        System.Console.Write("Pret: ");
-                        double pret = double.Parse(System.Console.ReadLine());
+                        Console.WriteLine("Selecteaza optiuni (separate prin virgula):");
+                        Console.WriteLine("1 - Garantie, 2 - SuportDrivere, 4 - LivrareRapida, 8 - Returnare14Zile");
 
-                        
-                        System.Console.WriteLine("Optiuni (introdu numere separate prin virgula):");
-                        System.Console.WriteLine("1 Garantie");
-                        System.Console.WriteLine("2 Suport Drivere");
-                        System.Console.WriteLine("4 Livrare Gratuita");
-                        System.Console.WriteLine("8 Retur 30 zile");
-                        System.Console.WriteLine("16 Montaj inclus");
-                        System.Console.WriteLine("32 Discount");
+                        string[] opturiInput = Console.ReadLine().Split(',', StringSplitOptions.RemoveEmptyEntries);
+                        Optiuni optiuni = Optiuni.Niciuna;
 
-                        string inputOptiuni = System.Console.ReadLine();
-                        Optiuni optiuniProdus = Optiuni.Nimic;
-
-                        if (!string.IsNullOrEmpty(inputOptiuni))
+                        foreach (var o in opturiInput)
                         {
-                            string[] valori = inputOptiuni.Split(',');
-                            foreach (var val in valori)
-                            {
-                                optiuniProdus |= (Optiuni)int.Parse(val.Trim());
-                            }
+                            if (int.TryParse(o.Trim(), out int val))
+                                optiuni |= (Optiuni)val;
                         }
 
-                        
-                        magazin.AdaugaProdus(
-                            new Produs(nume, (Categorie)cat, pret, optiuniProdus)
-                        );
-
-                        System.Console.WriteLine("Produs adaugat!");
+                        Produs p = new Produs(nume, (Categorie)cat, pret, optiuni);
+                        magazin.AdaugaProdus(p);
+                        Console.WriteLine("Produs adaugat cu succes!");
                         break;
 
-                    case 2:
-                        
-                        var produse = magazin.GetProduse();
-                        if (produse.Count == 0)
+                    case "2":
+                        Console.Write("ID produs de sters: ");
+                        if (int.TryParse(Console.ReadLine(), out int id))
+                            magazin.StergeProdus(id);
+                        else
+                            Console.WriteLine("ID invalid!");
+                        break;
+
+                    case "3":
+                        Console.WriteLine("\nLista produse:");
+                        foreach (var prod in magazin.GetProduse())
+                            Console.WriteLine(prod);
+                        break;
+
+                    case "4":
+                        Console.Write("Cauta dupa nume: ");
+                        string cautaNume = Console.ReadLine();
+                        var rezultateNume = magazin.CautaDupaNume(cautaNume);
+                        if (rezultateNume.Count == 0)
+                            Console.WriteLine("Nu s-au gasit produse.");
+                        else
+                            foreach (var prod in rezultateNume)
+                                Console.WriteLine(prod);
+                        break;
+
+                    case "5":
+                        Console.WriteLine("Categorie (0=Procesor, 1=PlacaVideo, 2=RAM, 3=PlacaDeBaza, 4=Sursa, 5=Stocare, 6=Periferice):");
+                        int c = int.Parse(Console.ReadLine());
+                        var rezultateCat = magazin.CautaDupaCategorie((Categorie)c);
+                        if (rezultateCat.Count == 0)
+                            Console.WriteLine("Nu s-au gasit produse.");
+                        else
+                            foreach (var prod in rezultateCat)
+                                Console.WriteLine(prod);
+                        break;
+
+                    case "6":
+                        Console.Write("Pret maxim: ");
+                        if (double.TryParse(Console.ReadLine(), out double pretMax))
                         {
-                            System.Console.WriteLine("Nu exista produse.");
+                            var rezultatePret = magazin.CautaDupaPret(pretMax);
+                            if (rezultatePret.Count == 0)
+                                Console.WriteLine("Nu s-au gasit produse.");
+                            else
+                                foreach (var prod in rezultatePret)
+                                    Console.WriteLine(prod);
                         }
                         else
                         {
-                            foreach (var p in produse)
-                            {
-                                System.Console.WriteLine(p);
-                            }
+                            Console.WriteLine("Pret invalid!");
                         }
                         break;
 
-                    case 3:
-                        
-                        System.Console.Write("ID produs de sters: ");
-                        int idStergere = int.Parse(System.Console.ReadLine());
+                    case "7":
+                        Console.WriteLine("Selecteaza optiuni de cautare (separate prin virgula):");
+                        Console.WriteLine("1 - Garantie, 2 - SuportDrivere, 4 - LivrareRapida, 8 - Returnare14Zile");
 
-                        if (magazin.StergeProdus(idStergere))
-                            System.Console.WriteLine("Produs sters!");
+                        string[] opturiInputCautare = Console.ReadLine().Split(',', StringSplitOptions.RemoveEmptyEntries);
+                        Optiuni optiuniCautare = Optiuni.Niciuna;
+
+                        foreach (var o in opturiInputCautare)
+                        {
+                            if (int.TryParse(o.Trim(), out int val))
+                                optiuniCautare |= (Optiuni)val;
+                        }
+
+                        var rezultateOptiuni = magazin.CautaDupaOptiuni(optiuniCautare);
+                        if (rezultateOptiuni.Count == 0)
+                            Console.WriteLine("Nu s-au gasit produse.");
                         else
-                            System.Console.WriteLine("Produs inexistent!");
+                            foreach (var prod in rezultateOptiuni)
+                                Console.WriteLine(prod);
                         break;
 
-                    case 4:
-                       
-                        System.Console.Write("Nume: ");
-                        string cautaNume = System.Console.ReadLine();
-                        var rez1 = magazin.CautaDupaNume(cautaNume);
-                        foreach (var p in rez1)
+                    case "8":
+                        Console.Write("ID produs de modificat: ");
+                        if (int.TryParse(Console.ReadLine(), out int idMod))
                         {
-                            System.Console.WriteLine(p);
-                        }
-                        break;
+                            Console.Write("Nume nou (lasa gol pentru a pastra): ");
+                            string numeNou = Console.ReadLine();
+                            if (string.IsNullOrWhiteSpace(numeNou)) numeNou = null;
 
-                    case 5:
-                        
-                        System.Console.Write("Categorie (1-7): ");
-                        int c = int.Parse(System.Console.ReadLine());
-                        var rez2 = magazin.CautaDupaCategorie((Categorie)c);
-                        foreach (var p in rez2)
-                        {
-                            System.Console.WriteLine(p);
-                        }
-                        break;
+                            Console.WriteLine("Categorie noua (0=Procesor, 1=PlacaVideo, 2=RAM, 3=PlacaDeBaza, 4=Sursa, 5=Stocare, 6=Periferice) [lasa gol pentru a pastra]:");
+                            string catInput = Console.ReadLine();
+                            Categorie? catNou = string.IsNullOrWhiteSpace(catInput) ? (Categorie?)null : (Categorie)int.Parse(catInput);
 
-                    case 6:
-                        
-                        System.Console.Write("Pret maxim: ");
-                        double pretMax = double.Parse(System.Console.ReadLine());
-                        var rez3 = magazin.CautaDupaPret(pretMax);
-                        foreach (var p in rez3)
-                        {
-                            System.Console.WriteLine(p);
-                        }
-                        break;
+                            Console.Write("Pret nou (lasa gol pentru a pastra): ");
+                            string pretInput = Console.ReadLine();
+                            double? pretNou = string.IsNullOrWhiteSpace(pretInput) ? (double?)null : double.Parse(pretInput);
 
-                    case 7:
-                        
-                        System.Console.WriteLine("Optiune de cautat (ex: 1, 2, 4 etc.):");
-                        string inputOptCauta = System.Console.ReadLine();
-                        Optiuni cautaOpt = Optiuni.Nimic;
+                            Console.WriteLine("Selecteaza optiuni noi (separate prin virgula) [lasa gol pentru a pastra]:");
+                            Console.WriteLine("1 - Garantie, 2 - SuportDrivere, 4 - LivrareRapida, 8 - Returnare14Zile");
+                            string optInput = Console.ReadLine();
+                            Optiuni? optiuniMod = null;
 
-                        if (!string.IsNullOrEmpty(inputOptCauta))
-                        {
-                            string[] val = inputOptCauta.Split(',');
-                            foreach (var v in val)
+                            if (!string.IsNullOrWhiteSpace(optInput))
                             {
-                                cautaOpt |= (Optiuni)int.Parse(v.Trim());
+                                optiuniMod = Optiuni.Niciuna;
+                                string[] opturiInputMod = optInput.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var o in opturiInputMod)
+                                {
+                                    if (int.TryParse(o.Trim(), out int val))
+                                        optiuniMod |= (Optiuni)val;
+                                }
                             }
-                        }
 
-                        var rez4 = magazin.CautaDupaOptiuni(cautaOpt);
-                        foreach (var p in rez4)
-                        {
-                            System.Console.WriteLine(p);
+                            // Apelăm funcția de modificare din MagazinAdmin
+                            magazin.ModificaProdus(idMod, numeNou, catNou, pretNou, optiuniMod);
+                            Console.WriteLine("Modificare aplicata cu succes!");
                         }
+                        else
+                        {
+                            Console.WriteLine("ID invalid!");
+                        }
+                        break;
+
+                    case "0":
+                        ruleaza = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Optiune invalida!");
                         break;
                 }
-
-            } while (optiune != 0);
-
-            System.Console.WriteLine("Aplicatia s-a inchis.");
+            }
         }
     }
 }
