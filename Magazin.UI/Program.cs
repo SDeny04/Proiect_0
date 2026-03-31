@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Magazin.Logic;
+using Magazin.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Magazin.Models;
-using Magazin.Logic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Magazin.ConsoleApp
 {
@@ -104,7 +105,10 @@ namespace Magazin.ConsoleApp
             Console.Write("Introdu codurile (ex: 1,4): ");
             Optiuni optiuni = ParseOptiuni(Console.ReadLine());
 
-            magazin.AdaugaProdus(new Produs(nume, (Categorie)cat, pret, optiuni));
+            Console.Write("Stoc: ");
+            int stoc = int.Parse(Console.ReadLine());
+
+            magazin.AdaugaProdus(new Produs(nume, (Categorie)cat, pret, optiuni,stoc));
             Console.WriteLine("Produs adaugat!");
         }
 
@@ -200,12 +204,20 @@ namespace Magazin.ConsoleApp
         }
         static void PlaseazaComanda()
         {
-            foreach (var p in magazin.GetProduse()) Console.WriteLine(p);
-            Console.Write("\nIntrodu ID-urile produselor dorite (ex: 1,2,5): ");
+            // Afisare
+            Console.WriteLine("\n--- PLASARE COMANDA ---");
+            foreach (var p in magazin.GetProduse())
+            {
+                Console.WriteLine(p);
+            }
+
+            // Citire de la tastatura
+            Console.Write("\nIntrodu ID-urile dorite (ex: 1,2,5): ");
             string input = Console.ReadLine();
 
             if (!string.IsNullOrWhiteSpace(input))
             {
+                // Transformare input (Parsing)
                 List<int> listaIds = input.Split(',')
                                           .Select(s => s.Trim())
                                           .Where(s => int.TryParse(s, out _))
@@ -214,11 +226,15 @@ namespace Magazin.ConsoleApp
 
                 if (listaIds.Count > 0)
                 {
-                    cAdmin.AdaugaComanda(utilizatorLogat.Id, listaIds);
-                    Console.WriteLine("Comanda a fost plasata cu succes!");
+                    if (cAdmin.ExecutaComanda(utilizatorLogat.Id, listaIds, magazin) != null)
+                        Console.WriteLine(" Comanda plasata cu succes!!");
                 }
-                else Console.WriteLine("Nu ai introdus ID-uri valide.");
+                else
+                {
+                    Console.WriteLine(" Nu ai introdus ID-uri valide.");
+                }
             }
         }
+
     }
 }

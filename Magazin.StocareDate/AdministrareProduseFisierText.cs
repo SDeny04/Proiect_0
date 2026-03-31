@@ -16,7 +16,7 @@ namespace Magazin.StocareDate
         {
             using (StreamWriter sw = new StreamWriter(FISIER_PRODUSE, true))
             {
-                sw.WriteLine($"{produs.Id};{produs.Nume};{produs.CategorieProdus};{produs.Pret};{produs.OptiuniProdus}");
+                sw.WriteLine($"{produs.Id};{produs.Nume};{produs.CategorieProdus};{produs.Pret};{produs.OptiuniProdus};{produs.Stoc};");
             }
         }
 
@@ -34,8 +34,9 @@ namespace Magazin.StocareDate
                 Categorie categorie = (Categorie)Enum.Parse(typeof(Categorie), campuri[2]);
                 double pret = double.Parse(campuri[3]);
                 Optiuni optiuni = (Optiuni)Enum.Parse(typeof(Optiuni), campuri[4]);
+                int stoc= int.Parse(campuri[5]);
 
-                produse.Add(new Produs(nume, categorie, pret, optiuni) { Id = id });
+                produse.Add(new Produs(nume, categorie, pret, optiuni, stoc) { Id = id });
             }
             return produse;
         }

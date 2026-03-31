@@ -1,27 +1,8 @@
 ﻿using System;
-
+using Magazin.Models;
 namespace Magazin.Models
 {
-    [Flags]
-    public enum Optiuni
-    {
-        Niciuna = 0,
-        Garantie = 1,
-        SuportDrivere = 2,
-        LivrareRapida = 4,
-        Returnare14Zile = 8
-    }
-
-    public enum Categorie
-    {
-        Procesor,
-        PlacaVideo,
-        RAM,
-        PlacaDeBaza,
-        Sursa,
-        Stocare,
-        Periferice
-    }
+    
 
     public class Produs
     {
@@ -30,18 +11,20 @@ namespace Magazin.Models
         public Categorie CategorieProdus { get; set; }
         public double Pret { get; set; }
         public Optiuni OptiuniProdus { get; set; }
+        public int Stoc { get; set; }
 
-        public Produs(string nume, Categorie categorie, double pret, Optiuni optiuni)
+        public Produs(string nume, Categorie categorie, double pret, Optiuni optiuni, int stoc)
         {
             Nume = nume;
             CategorieProdus = categorie;
             Pret = pret;
             OptiuniProdus = optiuni;
+            Stoc = stoc;
         }
 
         public override string ToString()
         {
-            return $"{Id}: {Nume} - {CategorieProdus} - {Pret} RON - Optiuni: {OptiuniProdus}";
+            return $"{Id}: {Nume} - {CategorieProdus} - {Pret} RON - Optiuni: {OptiuniProdus}- Stoc: {Stoc}";
         }
     }
 }

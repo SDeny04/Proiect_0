@@ -17,7 +17,26 @@ namespace Magazin.Logic
             if (comenzi.Count > 0)
                 nextId = comenzi.Max(c => c.Id) + 1;
         }
+        public bool ExecutaComanda(int idClient, List<int> listaIds, MagazinAdmin magazin)
+        {
+            List<int> produseConfirmate = new List<int>();
 
+            foreach (int id in listaIds)
+            {
+                if (magazin.ScadeStoc(id, 1))
+                {
+                    produseConfirmate.Add(id);
+                }
+            }
+
+            if (produseConfirmate.Count > 0)
+            {
+                AdaugaComanda(idClient, produseConfirmate);
+                return true;
+            }
+
+            return false;
+        }
         public void AdaugaComanda(int idClient, List<int> produseId)
         {
             var toateProdusele = stocare.GetProduse();

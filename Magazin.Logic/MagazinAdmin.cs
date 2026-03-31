@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Magazin.Models;
+using Magazin.StocareDate;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Magazin.Models;
-using Magazin.StocareDate;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Magazin.Logic
 {
@@ -25,6 +26,21 @@ namespace Magazin.Logic
             produs.Id = nextId++;
             stocare.AdaugaProdus(produs);
         }
+        public bool ScadeStoc(int idProdus, int cantitate = 1)
+        {
+            var listaProduse = stocare.GetProduse();
+            var produs = listaProduse.FirstOrDefault(p => p.Id == idProdus);
+            if (produs != null && produs.Stoc >= cantitate)
+            {
+                produs.Stoc -= cantitate;
+
+                File.WriteAllLines("produse.txt",
+                listaProduse.Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc};"));
+
+                return true; 
+            }
+            return false; 
+        }
 
         public void StergeProdus(int id)
         {
@@ -35,7 +51,7 @@ namespace Magazin.Logic
             {
                 File.WriteAllLines("produse.txt",
                     produse.Where(p => p.Id != id)
-                           .Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus}"));
+                           .Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}"));
             }
             else
                 Console.WriteLine("Produsul nu a fost găsit.");
@@ -66,7 +82,7 @@ namespace Magazin.Logic
 
             
             File.WriteAllLines("produse.txt",
-                produse.Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus}"));
+                produse.Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}"));
         }
 
         public List<Produs> GetProduse() => stocare.GetProduse();
