@@ -17,9 +17,10 @@ namespace Magazin.Logic
             if (comenzi.Count > 0)
                 nextId = comenzi.Max(c => c.Id) + 1;
         }
-        public bool ExecutaComanda(int idClient, List<int> listaIds, MagazinAdmin magazin)
+        public string ExecutaComanda(int idClient, List<int> listaIds, MagazinAdmin magazin)
         {
             List<int> produseConfirmate = new List<int>();
+            List<string> erori = new List<string>();
 
             foreach (int id in listaIds)
             {
@@ -27,15 +28,24 @@ namespace Magazin.Logic
                 {
                     produseConfirmate.Add(id);
                 }
+                else
+                {
+                    erori.Add($"ID {id}");
+                }
             }
 
             if (produseConfirmate.Count > 0)
             {
                 AdaugaComanda(idClient, produseConfirmate);
-                return true;
+
+                string mesaj = " Comanda a fost plasata cu succes!";
+                if (erori.Count > 0)
+                    mesaj += " (Produse indisponibile: " + string.Join(", ", erori) + ")";
+
+                return mesaj;
             }
 
-            return false;
+            return "Comanda anulata";
         }
         public void AdaugaComanda(int idClient, List<int> produseId)
         {

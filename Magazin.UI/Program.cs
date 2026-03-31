@@ -204,20 +204,20 @@ namespace Magazin.ConsoleApp
         }
         static void PlaseazaComanda()
         {
-            // Afisare
+            
             Console.WriteLine("\n--- PLASARE COMANDA ---");
             foreach (var p in magazin.GetProduse())
             {
                 Console.WriteLine(p);
             }
 
-            // Citire de la tastatura
+            
             Console.Write("\nIntrodu ID-urile dorite (ex: 1,2,5): ");
             string input = Console.ReadLine();
 
             if (!string.IsNullOrWhiteSpace(input))
             {
-                // Transformare input (Parsing)
+                
                 List<int> listaIds = input.Split(',')
                                           .Select(s => s.Trim())
                                           .Where(s => int.TryParse(s, out _))
@@ -226,12 +226,12 @@ namespace Magazin.ConsoleApp
 
                 if (listaIds.Count > 0)
                 {
-                    if (cAdmin.ExecutaComanda(utilizatorLogat.Id, listaIds, magazin) != null)
-                        Console.WriteLine(" Comanda plasata cu succes!!");
+                    string rezultat = cAdmin.ExecutaComanda(utilizatorLogat.Id, listaIds, magazin);
+                        Console.WriteLine(rezultat);
                 }
                 else
                 {
-                    Console.WriteLine(" Nu ai introdus ID-uri valide.");
+                    Console.WriteLine("Produse indisponibile");
                 }
             }
         }
