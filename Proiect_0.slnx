@@ -3,4 +3,5 @@
   <Project Path="Magazin.Models/Magazin.Models.csproj" Id="fb827bd7-13cc-4677-8814-2b3ba58d859f" />
   <Project Path="Magazin.StocareDate/Magazin.StocareDate.csproj" Id="fa1408b0-5498-4304-b01c-abd201615c06" />
   <Project Path="Magazin.UI/Magazin.UI.csproj" Id="627dd4f6-9453-4e1b-a547-7d6867e021ad" />
+  <Project Path="Magazin.WPF/Magazin.WPF.csproj" Id="a1b2c3d4-e5f6-7890-abcd-ef1234567890" />
 </Solution>
