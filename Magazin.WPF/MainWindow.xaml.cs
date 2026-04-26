@@ -158,21 +158,21 @@ namespace Magazin.WPF
             tabActiv = tab;
 
             // Reset styles
-            BtnTabProduse.Style = (Style)FindResource("TabButtonStyle");
-            BtnTabComenzi.Style = (Style)FindResource("TabButtonStyle");
-            BtnTabUtilizatori.Style = (Style)FindResource("TabButtonStyle");
+            BtnTabProduse.FontWeight = FontWeights.Normal;
+            BtnTabComenzi.FontWeight = FontWeights.Normal;
+            BtnTabUtilizatori.FontWeight = FontWeights.Normal;
 
             // Set active
             switch (tab)
             {
                 case 0:
-                    BtnTabProduse.Style = (Style)FindResource("TabButtonActiveStyle");
+                    BtnTabProduse.FontWeight = FontWeights.Bold;
                     break;
                 case 1:
-                    BtnTabComenzi.Style = (Style)FindResource("TabButtonActiveStyle");
+                    BtnTabComenzi.FontWeight = FontWeights.Bold;
                     break;
                 case 2:
-                    BtnTabUtilizatori.Style = (Style)FindResource("TabButtonActiveStyle");
+                    BtnTabUtilizatori.FontWeight = FontWeights.Bold;
                     break;
             }
 
@@ -189,26 +189,45 @@ namespace Magazin.WPF
         private void BtnTabComenzi_Click(object sender, RoutedEventArgs e) => SetTabActiv(1);
         private void BtnTabUtilizatori_Click(object sender, RoutedEventArgs e) => SetTabActiv(2);
 
+        // ═══════ MENU EVENTS ═══════
+        private void MenuItemIesire_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void MenuItemDespre_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Aplicație de gestionare Magazin PC.\nVersiune proiect facultate.", "Despre", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         // ═══════ SEARCH / FILTER ═══════
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             ActualizeazaGrid();
         }
 
+        private void CriteriuCautare_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
         private void ActualizeazaGrid()
         {
-            string filtru = TxtSearch?.Text?.Trim().ToLower() ?? "";
+            if (TxtSearch == null || CboCriteriuCautare == null) return;
+
+            string filtru = TxtSearch.Text.Trim().ToLower();
+            string criteriu = (CboCriteriuCautare.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "General";
 
             switch (tabActiv)
             {
                 case 0:
                     var produseFiltrate = string.IsNullOrEmpty(filtru)
                         ? toateProdusele
-                        : toateProdusele.Where(p =>
-                            p.Nume.ToLower().Contains(filtru) ||
-                            p.CategorieProdus.ToString().ToLower().Contains(filtru) ||
-                            p.Id.ToString().Contains(filtru)
-                        ).ToList();
+                        : toateProdusele.Where(p => {
+                            if (criteriu == "ID") return p.Id.ToString().Contains(filtru);
+                            if (criteriu == "Nume/Username") return p.Nume.ToLower().Contains(filtru);
+                            return p.Nume.ToLower().Contains(filtru) || p.CategorieProdus.ToString().ToLower().Contains(filtru) || p.Id.ToString().Contains(filtru);
+                        }).ToList();
 
                     GridProduse.ItemsSource = produseFiltrate;
                     VerificaEmpty(produseFiltrate.Count);
@@ -217,11 +236,10 @@ namespace Magazin.WPF
                 case 1:
                     var comenziFiltrate = string.IsNullOrEmpty(filtru)
                         ? toateComenzile
-                        : toateComenzile.Where(c =>
-                            c.Id.ToString().Contains(filtru) ||
-                            c.IdClient.ToString().Contains(filtru) ||
-                            c.Total.ToString("N2").Contains(filtru)
-                        ).ToList();
+                        : toateComenzile.Where(c => {
+                            if (criteriu == "ID") return c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru);
+                            return c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.ToString("N2").Contains(filtru);
+                        }).ToList();
 
                     GridComenzi.ItemsSource = comenziFiltrate;
                     VerificaEmpty(comenziFiltrate.Count);
@@ -230,12 +248,11 @@ namespace Magazin.WPF
                 case 2:
                     var utilizatoriFiltrati = string.IsNullOrEmpty(filtru)
                         ? totiUtilizatorii
-                        : totiUtilizatorii.Where(u =>
-                            u.Nume.ToLower().Contains(filtru) ||
-                            u.Username.ToLower().Contains(filtru) ||
-                            u.Email.ToLower().Contains(filtru) ||
-                            u.Rol.ToString().ToLower().Contains(filtru)
-                        ).ToList();
+                        : totiUtilizatorii.Where(u => {
+                            if (criteriu == "ID") return u.Id.ToString().Contains(filtru);
+                            if (criteriu == "Nume/Username") return u.Nume.ToLower().Contains(filtru) || u.Username.ToLower().Contains(filtru);
+                            return u.Nume.ToLower().Contains(filtru) || u.Username.ToLower().Contains(filtru) || u.Email.ToLower().Contains(filtru) || u.Rol.ToString().ToLower().Contains(filtru);
+                        }).ToList();
 
                     GridUtilizatori.ItemsSource = utilizatoriFiltrati;
                     VerificaEmpty(utilizatoriFiltrati.Count);
@@ -245,7 +262,8 @@ namespace Magazin.WPF
 
         private void VerificaEmpty(int count)
         {
-            PanelEmpty.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelEmpty != null)
+                 PanelEmpty.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // ═══════ ADD PRODUCT ═══════

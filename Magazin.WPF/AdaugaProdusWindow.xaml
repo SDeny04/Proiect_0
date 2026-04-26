@@ -1,139 +1,79 @@
 <Window x:Class="Magazin.WPF.AdaugaProdusWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Adaugă Produs Nou" Height="550" Width="450"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        Background="#0D1117">
+        Title="Adauga Produs Nou" Height="500" Width="380"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="TextPrimary" Color="#E6EDF3"/>
-        <SolidColorBrush x:Key="TextSecondary" Color="#8B949E"/>
-        <SolidColorBrush x:Key="BgInput" Color="#161B22"/>
-        <SolidColorBrush x:Key="BorderNormal" Color="#30363D"/>
-        <SolidColorBrush x:Key="BorderFocus" Color="#58A6FF"/>
-        <SolidColorBrush x:Key="TextError" Color="#F85149"/>
-        <SolidColorBrush x:Key="BtnPrimary" Color="#238636"/>
-        <SolidColorBrush x:Key="BtnPrimaryHover" Color="#2EA043"/>
-
-        <!-- Stil Labels -->
-        <Style x:Key="FormLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
-            <Setter Property="FontSize" Value="13"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
-
-        <!-- Stil Input -->
         <Style TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource BgInput}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderNormal}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="2"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="{StaticResource BorderFocus}"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
         </Style>
-
-        <!-- Stil ComboBox -->
-        <Style TargetType="ComboBox">
-            <Setter Property="TextBox.Background" Value="{StaticResource BgInput}"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderNormal}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="6,8"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-        </Style>
-
-        <!-- Buton Adauga -->
-        <Style x:Key="SaveBtnStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BtnPrimary}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="0,12"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#cce5ff"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource BtnPrimaryHover}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
     </Window.Resources>
 
-    <Border Padding="30,20">
+    <Grid Margin="20">
         <StackPanel>
-            <TextBlock Text="Adaugă un Produs Nou" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,24"/>
+            <TextBlock Text="Adauga un Produs Nou" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
 
             <!-- Nume -->
-            <TextBlock x:Name="LblNume" Text="Nume Produs*" Style="{StaticResource FormLabel}"/>
-            <TextBox x:Name="TxtNume" TextChanged="Input_Changed"/>
+            <TextBlock x:Name="LblNume" Text="Nume Produs" />
+            <TextBox x:Name="TxtNume" TextChanged="Input_Changed" />
 
-            <!-- Categorie & Pret pe un rând -->
-            <Grid>
+            <!-- Categorie & Pret -->
+            <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0">
-                    <TextBlock x:Name="LblCategorie" Text="Categorie*" Style="{StaticResource FormLabel}"/>
-                    <ComboBox x:Name="CboCategorie" SelectionChanged="CboCategorie_SelectionChanged"/>
+                    <TextBlock x:Name="LblCategorie" Text="Categorie" />
+                    <ComboBox x:Name="CboCategorie" SelectionChanged="CboCategorie_SelectionChanged" Padding="5" Margin="0,0,0,15"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">
-                    <TextBlock x:Name="LblPret" Text="Preț (RON)*" Style="{StaticResource FormLabel}"/>
-                    <TextBox x:Name="TxtPret" TextChanged="Input_Changed"/>
+                    <TextBlock x:Name="LblPret" Text="Pret (RON)" />
+                    <TextBox x:Name="TxtPret" TextChanged="Input_Changed" />
                 </StackPanel>
             </Grid>
 
             <!-- Stoc -->
-            <TextBlock x:Name="LblStoc" Text="Stoc curent*" Style="{StaticResource FormLabel}"/>
-            <TextBox x:Name="TxtStoc" TextChanged="Input_Changed"/>
+            <TextBlock x:Name="LblStoc" Text="Stoc curent" />
+            <TextBox x:Name="TxtStoc" TextChanged="Input_Changed" />
 
-            <!-- Opțiuni -->
-            <TextBlock Text="Opțiuni Extra" Style="{StaticResource FormLabel}"/>
-            <Border Background="{StaticResource BgInput}" BorderBrush="{StaticResource BorderNormal}" BorderThickness="1" CornerRadius="6" Padding="15" Margin="0,0,0,20">
-                <UniformGrid Columns="2">
-                    <CheckBox x:Name="ChkGarantie" Content="Garanție" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                    <CheckBox x:Name="ChkSuportDrivere" Content="Suport Drivere" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
-                    <CheckBox x:Name="ChkLivrareRapida" Content="Livrare Rapidă" Foreground="{StaticResource TextPrimary}"/>
-                    <CheckBox x:Name="ChkReturnare14Zile" Content="Returnare 14 Zile" Foreground="{StaticResource TextPrimary}"/>
-                </UniformGrid>
+            <!-- Stare Produs (RADIO BUTTONS) -->
+            <TextBlock Text="Stare Produs" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                <RadioButton x:Name="RadioNou" Content="Nou" IsChecked="True" Margin="0,0,15,0"/>
+                <RadioButton x:Name="RadioResigilat" Content="Resigilat"/>
+            </StackPanel>
+
+            <!-- Opțiuni (CHECKBOXES) -->
+            <TextBlock Text="Optiuni Extra" />
+            <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,0,0,15">
+                <StackPanel>
+                    <CheckBox x:Name="ChkGarantie" Content="Garantie extinsa" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkSuportDrivere" Content="Suport instalare drivere" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkLivrareRapida" Content="Livrare Rapida" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkReturnare14Zile" Content="Returnare 14 Zile"/>
+                </StackPanel>
             </Border>
 
-            <!-- Eroare Text (ascuns implicit) -->
-            <TextBlock x:Name="TxtError" Foreground="{StaticResource TextError}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" />
+            <!-- Eroare Text -->
+            <TextBlock x:Name="TxtError" Foreground="Red" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" FontWeight="Normal" />
 
-            <Button Content="Salvează Produs" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+            <Button Content="Salveaza Produs" Click="BtnSave_Click"/>
         </StackPanel>
-    </Border>
+    </Grid>
 </Window>

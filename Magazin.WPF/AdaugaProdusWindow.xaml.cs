@@ -10,8 +10,8 @@ namespace Magazin.WPF
     {
         public Produs? ProdusNou { get; private set; }
 
-        private readonly SolidColorBrush colorNormal = new SolidColorBrush(Color.FromRgb(139, 148, 158)); // #8B949E (TextSecondary)
-        private readonly SolidColorBrush colorError = new SolidColorBrush(Color.FromRgb(248, 81, 73));   // #F85149 (AccentRed)
+        private readonly SolidColorBrush colorNormal = new SolidColorBrush(Colors.Black);
+        private readonly SolidColorBrush colorError = new SolidColorBrush(Colors.Red);
 
         public AdaugaProdusWindow()
         {
@@ -31,6 +31,10 @@ namespace Magazin.WPF
             {
                 // Dupa ce validarea a trecut, ne construim produsul
                 string nume = TxtNume.Text.Trim();
+                if (RadioResigilat?.IsChecked == true)
+                {
+                    nume += " (Resigilat)";
+                }
                 Categorie categorie = (Categorie)CboCategorie.SelectedItem;
                 double pret = double.Parse(TxtPret.Text.Trim());
                 int stoc = int.Parse(TxtStoc.Text.Trim());
