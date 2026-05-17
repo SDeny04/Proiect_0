@@ -54,6 +54,29 @@ namespace Magazin.StocareDate
             return produse;
         }
 
+        public void UpdateProdus(Produs produsModificat)
+        {
+            var produse = GetProduse();
+            var index = produse.FindIndex(p => p.Id == produsModificat.Id);
+            
+            // Debugging
+            File.AppendAllText("debug_log.txt", $"UpdateProdus called. produsModificat.Id={produsModificat.Id}, BasePath={BasePath}, Index={index}\n");
+            
+            if (index != -1)
+            {
+                produse[index] = produsModificat;
+                // Rescriem fișierul cu noile date
+                using (StreamWriter sw = new StreamWriter(GetCale(FISIER_PRODUSE), false))
+                {
+                    foreach (var p in produse)
+                    {
+                        sw.WriteLine($"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}");
+                    }
+                }
+                File.AppendAllText("debug_log.txt", $"File written successfully to {GetCale(FISIER_PRODUSE)}\n");
+            }
+        }
+
         public void AdaugaUtilizator(Utilizator utilizator)
         {
             using (StreamWriter sw = new StreamWriter(GetCale(FISIER_UTILIZATORI), true))

@@ -1,4 +1,4 @@
-﻿using Magazin.Models;
+using Magazin.Models;
 using Magazin.StocareDate;
 using System;
 using System.Collections.Generic;
@@ -58,10 +58,7 @@ namespace Magazin.Logic
         }
         public void ModificaProdus(int id, string nume = null, Categorie? categorie = null, double? pret = null, Optiuni? optiuni = null)
         {
-            
             var produse = stocare.GetProduse();
-
-            
             var produs = produse.FirstOrDefault(p => p.Id == id);
 
             if (produs == null)
@@ -70,7 +67,6 @@ namespace Magazin.Logic
                 return;
             }
 
-            
             if (!string.IsNullOrWhiteSpace(nume))
                 produs.Nume = nume;
             if (categorie.HasValue)
@@ -80,9 +76,12 @@ namespace Magazin.Logic
             if (optiuni.HasValue)
                 produs.OptiuniProdus = optiuni.Value;
 
-            
-            File.WriteAllLines("produse.txt",
-                produse.Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}"));
+            stocare.UpdateProdus(produs);
+        }
+
+        public void UpdateProdus(Produs produs)
+        {
+            stocare.UpdateProdus(produs);
         }
 
         public List<Produs> GetProduse() => stocare.GetProduse();

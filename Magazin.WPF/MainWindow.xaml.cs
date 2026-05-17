@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Magazin.Logic;
 using Magazin.Models;
 using Magazin.StocareDate;
@@ -60,7 +61,25 @@ namespace Magazin.WPF
                 magazin = new MagazinAdmin();
                 comandaAdmin = new ComandaAdmin();
                 utilizatorAdmin = new UtilizatorAdmin();
+                
+                // Populam ComboBox pentru categorii
+                CboFiltruCategorie.Items.Add("Toate");
+                foreach (Categorie cat in Enum.GetValues(typeof(Categorie)))
+                {
+                    CboFiltruCategorie.Items.Add(cat.ToString());
+                }
+                CboFiltruCategorie.SelectedIndex = 0;
+
                 IncarcaDate();
+
+                // AUTOMATED TEST
+                var prod = magazin.GetProduse().FirstOrDefault();
+                if (prod != null)
+                {
+                    prod.Stoc = prod.Stoc == 999 ? 888 : 999;
+                    magazin.UpdateProdus(prod);
+                    System.IO.File.AppendAllText("autotest.txt", $"Updated product {prod.Id} stoc to {prod.Stoc}\n");
+                }
             }
             catch (Exception ex)
             {
@@ -181,6 +200,12 @@ namespace Magazin.WPF
             GridComenzi.Visibility = tab == 1 ? Visibility.Visible : Visibility.Collapsed;
             GridUtilizatori.Visibility = tab == 2 ? Visibility.Visible : Visibility.Collapsed;
 
+            // Arata/Ascunde filtre și detalii
+            if (PanelFiltruCategorie != null) PanelFiltruCategorie.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelFiltruData != null) PanelFiltruData.Visibility = tab == 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelDetaliiProdus != null) PanelDetaliiProdus.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (BtnEditeazaProdus != null) BtnEditeazaProdus.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+
             TxtSearch.Text = "";
             ActualizeazaGrid();
         }
@@ -221,25 +246,33 @@ namespace Magazin.WPF
             switch (tabActiv)
             {
                 case 0:
-                    var produseFiltrate = string.IsNullOrEmpty(filtru)
-                        ? toateProdusele
-                        : toateProdusele.Where(p => {
-                            if (criteriu == "ID") return p.Id.ToString().Contains(filtru);
-                            if (criteriu == "Nume/Username") return p.Nume.ToLower().Contains(filtru);
-                            return p.Nume.ToLower().Contains(filtru) || p.CategorieProdus.ToString().ToLower().Contains(filtru) || p.Id.ToString().Contains(filtru);
-                        }).ToList();
+                    string catFiltru = CboFiltruCategorie?.SelectedItem?.ToString() ?? "Toate";
+                    
+                    var produseFiltrate = toateProdusele.Where(p => {
+                        bool matchSearch = string.IsNullOrEmpty(filtru) ||
+                                           (criteriu == "ID" && p.Id.ToString().Contains(filtru)) ||
+                                           (criteriu == "Nume/Username" && p.Nume.ToLower().Contains(filtru)) ||
+                                           (criteriu == "General" && (p.Nume.ToLower().Contains(filtru) || p.CategorieProdus.ToString().ToLower().Contains(filtru) || p.Id.ToString().Contains(filtru)));
+                        
+                        bool matchCat = catFiltru == "Toate" || p.CategorieProdus.ToString() == catFiltru;
+                        return matchSearch && matchCat;
+                    }).ToList();
 
                     GridProduse.ItemsSource = produseFiltrate;
                     VerificaEmpty(produseFiltrate.Count);
                     break;
 
                 case 1:
-                    var comenziFiltrate = string.IsNullOrEmpty(filtru)
-                        ? toateComenzile
-                        : toateComenzile.Where(c => {
-                            if (criteriu == "ID") return c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru);
-                            return c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.ToString("N2").Contains(filtru);
-                        }).ToList();
+                    DateTime? dataFiltru = DateFiltru?.SelectedDate;
+                    
+                    var comenziFiltrate = toateComenzile.Where(c => {
+                        bool matchSearch = string.IsNullOrEmpty(filtru) ||
+                                           (criteriu == "ID" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru))) ||
+                                           (criteriu == "General" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.ToString("N2").Contains(filtru)));
+                        
+                        bool matchData = !dataFiltru.HasValue || c.DataComenzii.Date == dataFiltru.Value.Date;
+                        return matchSearch && matchData;
+                    }).ToList();
 
                     GridComenzi.ItemsSource = comenziFiltrate;
                     VerificaEmpty(comenziFiltrate.Count);
@@ -264,6 +297,37 @@ namespace Magazin.WPF
         {
             if (PanelEmpty != null)
                  PanelEmpty.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // ═══════ SELECTION EVENTS ═══════
+        private void GridProduse_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produs)
+            {
+                BtnEditeazaProdus.IsEnabled = true;
+                TxtDetaliiNume.Text = produs.Nume;
+                TxtDetaliiNume.Foreground = new SolidColorBrush(Colors.Black);
+
+                ListOptiuniProdus.Items.Clear();
+                if (produs.OptiuniProdus == Optiuni.Niciuna)
+                {
+                    ListOptiuniProdus.Items.Add("Fără opțiuni extra");
+                }
+                else
+                {
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.Garantie)) ListOptiuniProdus.Items.Add("• Garanție extinsă");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.SuportDrivere)) ListOptiuniProdus.Items.Add("• Suport instalare drivere");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.LivrareRapida)) ListOptiuniProdus.Items.Add("• Livrare Rapidă");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.Returnare14Zile)) ListOptiuniProdus.Items.Add("• Returnare 14 Zile");
+                }
+            }
+            else
+            {
+                BtnEditeazaProdus.IsEnabled = false;
+                TxtDetaliiNume.Text = "Selectează un produs";
+                TxtDetaliiNume.Foreground = new SolidColorBrush(Colors.Gray);
+                ListOptiuniProdus.Items.Clear();
+            }
         }
 
         // ═══════ ADD PRODUCT ═══════
@@ -293,6 +357,32 @@ namespace Magazin.WPF
                 catch (Exception ex)
                 {
                    MessageBox.Show($"Eroare la adăugarea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // ═══════ EDIT PRODUCT ═══════
+        private void BtnEditeazaProdus_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produsSelectat)
+            {
+                var editWin = new EditeazaProdusWindow(produsSelectat)
+                {
+                    Owner = this
+                };
+
+                if (editWin.ShowDialog() == true && editWin.ProdusModificat != null)
+                {
+                    try
+                    {
+                        magazin.UpdateProdus(editWin.ProdusModificat);
+                        IncarcaDate();
+                        MessageBox.Show("Produsul a fost actualizat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la modificarea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
         }

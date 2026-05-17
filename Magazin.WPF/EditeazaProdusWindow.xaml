@@ -1,0 +1,79 @@
+<Window x:Class="Magazin.WPF.EditeazaProdusWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Editeaza Produs" Height="600" Width="380"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" SizeToContent="Height">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Background" Value="#cce5ff"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="Editeaza Produsul" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <!-- Nume -->
+            <TextBlock x:Name="LblNume" Text="Nume Produs" />
+            <TextBox x:Name="TxtNume" TextChanged="Input_Changed" />
+
+            <!-- Categorie & Pret -->
+            <Grid Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock x:Name="LblCategorie" Text="Categorie" />
+                    <ComboBox x:Name="CboCategorie" SelectionChanged="CboCategorie_SelectionChanged" Padding="5" Margin="0,0,0,15"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock x:Name="LblPret" Text="Pret (RON)" />
+                    <TextBox x:Name="TxtPret" TextChanged="Input_Changed" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Stoc -->
+            <TextBlock x:Name="LblStoc" Text="Stoc curent" />
+            <TextBox x:Name="TxtStoc" TextChanged="Input_Changed" />
+
+            <!-- Stare Produs (RADIO BUTTONS) -->
+            <TextBlock Text="Stare Produs" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                <RadioButton x:Name="RadioNou" Content="Nou" IsChecked="True" Margin="0,0,15,0"/>
+                <RadioButton x:Name="RadioResigilat" Content="Resigilat"/>
+            </StackPanel>
+
+            <!-- Opțiuni (CHECKBOXES) -->
+            <TextBlock Text="Optiuni Extra" />
+            <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,0,0,15">
+                <StackPanel>
+                    <CheckBox x:Name="ChkGarantie" Content="Garantie extinsa" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkSuportDrivere" Content="Suport instalare drivere" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkLivrareRapida" Content="Livrare Rapida" Margin="0,0,0,5"/>
+                    <CheckBox x:Name="ChkReturnare14Zile" Content="Returnare 14 Zile"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Eroare Text -->
+            <TextBlock x:Name="TxtError" Foreground="Red" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" FontWeight="Normal" />
+
+            <Button Content="Salveaza Modificarile" Click="BtnSave_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

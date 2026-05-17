@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Magazin.Models;
 
 namespace Magazin.StocareDate
@@ -7,6 +7,7 @@ namespace Magazin.StocareDate
     {
         void AdaugaProdus(Produs produs);
         List<Produs> GetProduse();
+        void UpdateProdus(Produs produs);
 
         void AdaugaUtilizator(Utilizator utilizator);
         List<Utilizator> GetUtilizatori();

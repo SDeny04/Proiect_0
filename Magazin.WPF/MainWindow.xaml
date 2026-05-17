@@ -53,6 +53,7 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,10,10,15">
             <TextBlock Text="Magazin PC - Panou Administrare" FontSize="24" FontWeight="Bold" Margin="0,0,30,0"/>
             <Button Content="Adauga Produs Nou" Click="BtnAdaugaProdus_Click" Background="#cce5ff" FontWeight="Bold"/>
+            <Button x:Name="BtnEditeazaProdus" Content="Editeaza Produs" Click="BtnEditeazaProdus_Click" Background="#fff3cd" FontWeight="Bold" IsEnabled="False"/>
         </StackPanel>
 
         <!-- STATS -->
@@ -92,7 +93,19 @@
                 </StackPanel>
                 
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <TextBlock Text="Cauta dupa:" Margin="0,0,5,0"/>
+                    <!-- DatePicker for Comenzi -->
+                    <StackPanel x:Name="PanelFiltruData" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,10,0">
+                        <TextBlock Text="Data:" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <DatePicker x:Name="DateFiltru" Width="120" VerticalAlignment="Center" SelectedDateChanged="CriteriuCautare_Changed"/>
+                    </StackPanel>
+                    
+                    <!-- ComboBox for Produse -->
+                    <StackPanel x:Name="PanelFiltruCategorie" Orientation="Horizontal" Visibility="Visible" Margin="0,0,10,0">
+                        <TextBlock Text="Categorie:" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="CboFiltruCategorie" Width="120" VerticalAlignment="Center" SelectionChanged="CriteriuCautare_Changed" Height="25"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Cauta dupa:" Margin="0,0,5,0" VerticalAlignment="Center"/>
                     <ComboBox x:Name="CboCriteriuCautare" Width="100" Margin="0,0,10,0" SelectedIndex="0" SelectionChanged="CriteriuCautare_Changed" VerticalAlignment="Center" Height="25">
                         <ComboBoxItem Content="General"/>
                         <ComboBoxItem Content="ID"/>
@@ -106,7 +119,12 @@
 
         <!-- CONTENT -->
         <Grid Grid.Row="4" Margin="10,0,10,10">
-            <DataGrid x:Name="GridProduse" Visibility="Visible" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid x:Name="GridProduse" Grid.Column="0" Visibility="Visible" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0" SelectionChanged="GridProduse_SelectionChanged">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
                     <DataGridTextColumn Header="Nume Produs" Binding="{Binding Nume}" Width="*"/>
@@ -117,7 +135,7 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <DataGrid x:Name="GridComenzi" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0">
+            <DataGrid x:Name="GridComenzi" Grid.Column="0" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
                     <DataGridTextColumn Header="ID Client" Binding="{Binding IdClient}"/>
@@ -127,7 +145,7 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <DataGrid x:Name="GridUtilizatori" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0">
+            <DataGrid x:Name="GridUtilizatori" Grid.Column="0" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" AlternatingRowBackground="#f0f0f0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
                     <DataGridTextColumn Header="Nume" Binding="{Binding Nume}" Width="*"/>
@@ -137,9 +155,20 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <StackPanel x:Name="PanelEmpty" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel x:Name="PanelEmpty" Grid.Column="0" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Nu există date de afișat." FontSize="14" Foreground="Gray"/>
             </StackPanel>
+
+            <!-- ListBox pentru Detalii și Opțiuni -->
+            <Border x:Name="PanelDetaliiProdus" Grid.Column="1" Width="250" Margin="10,0,0,0" BorderBrush="LightGray" BorderThickness="1" Background="#fdfdfd" Visibility="Visible">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Detalii Produs Selectat" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="TxtDetaliiNume" Text="Selectează un produs" TextWrapping="Wrap" Margin="0,0,0,10" Foreground="Gray"/>
+                    
+                    <TextBlock Text="Opțiuni Produs:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ListBox x:Name="ListOptiuniProdus" MinHeight="100" Background="#f0f0f0" BorderBrush="Transparent"/>
+                </StackPanel>
+            </Border>
         </Grid>
 
     </Grid>
