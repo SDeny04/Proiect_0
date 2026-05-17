@@ -49,9 +49,7 @@ namespace Magazin.Logic
 
             if (produsDeSters != null)
             {
-                File.WriteAllLines("produse.txt",
-                    produse.Where(p => p.Id != id)
-                           .Select(p => $"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}"));
+                stocare.DeleteProdus(id);
             }
             else
                 Console.WriteLine("Produsul nu a fost găsit.");

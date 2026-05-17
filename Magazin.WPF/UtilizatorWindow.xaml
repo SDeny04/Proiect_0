@@ -1,0 +1,54 @@
+<Window x:Class="Magazin.WPF.UtilizatorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Gestionare Utilizator" Height="450" Width="350"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" SizeToContent="Height">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock x:Name="TxtTitlu" Text="Adauga Utilizator" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Nume Complet" />
+            <TextBox x:Name="TxtNume" />
+
+            <TextBlock Text="Username" />
+            <TextBox x:Name="TxtUsername" />
+
+            <TextBlock Text="Email" />
+            <TextBox x:Name="TxtEmail" />
+
+            <TextBlock Text="Parola" />
+            <TextBox x:Name="TxtParola" />
+
+            <TextBlock Text="Rol Utilizator" />
+            <ComboBox x:Name="CboRol" Padding="5" Margin="0,0,0,20">
+                <ComboBoxItem Content="Client"/>
+                <ComboBoxItem Content="Admin"/>
+            </ComboBox>
+
+            <TextBlock x:Name="TxtError" Foreground="Red" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" FontWeight="Normal" />
+
+            <Button Content="Salveaza" Click="BtnSave_Click" Background="#cce5ff"/>
+        </StackPanel>
+    </Grid>
+</Window>

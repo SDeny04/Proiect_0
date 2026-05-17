@@ -6,7 +6,7 @@ using Magazin.Models;
 
 namespace Magazin.StocareDate
 {
-    public class AdministrareProduseFisierText : IStocareData
+    public class AdministrareProduseFisierText : IStocareData, IUtilizatorCRUD
     {
         private const string FISIER_PRODUSE = "produse.txt";
         private const string FISIER_UTILIZATORI = "utilizatori.txt";
@@ -77,6 +77,20 @@ namespace Magazin.StocareDate
             }
         }
 
+        public void DeleteProdus(int id)
+        {
+            var produse = GetProduse();
+            produse.RemoveAll(p => p.Id == id);
+            
+            using (StreamWriter sw = new StreamWriter(GetCale(FISIER_PRODUSE), false))
+            {
+                foreach (var p in produse)
+                {
+                    sw.WriteLine($"{p.Id};{p.Nume};{p.CategorieProdus};{p.Pret};{p.OptiuniProdus};{p.Stoc}");
+                }
+            }
+        }
+
         public void AdaugaUtilizator(Utilizator utilizator)
         {
             using (StreamWriter sw = new StreamWriter(GetCale(FISIER_UTILIZATORI), true))
@@ -104,6 +118,36 @@ namespace Magazin.StocareDate
                 utilizatori.Add(new Utilizator(id, nume, username, email, parola, rol));
             }
             return utilizatori;
+        }
+
+        public void CreateUtilizator(Utilizator u) => AdaugaUtilizator(u);
+
+        public List<Utilizator> ReadUtilizatori() => GetUtilizatori();
+
+        public void UpdateUtilizator(Utilizator u)
+        {
+            var utilizatori = GetUtilizatori();
+            var index = utilizatori.FindIndex(x => x.Id == u.Id);
+            if (index != -1)
+            {
+                utilizatori[index] = u;
+                using (StreamWriter sw = new StreamWriter(GetCale(FISIER_UTILIZATORI), false))
+                {
+                    foreach (var util in utilizatori)
+                        sw.WriteLine($"{util.Id};{util.Nume};{util.Username};{util.Email};{util.Parola};{util.Rol}");
+                }
+            }
+        }
+
+        public void DeleteUtilizator(int id)
+        {
+            var utilizatori = GetUtilizatori();
+            utilizatori.RemoveAll(x => x.Id == id);
+            using (StreamWriter sw = new StreamWriter(GetCale(FISIER_UTILIZATORI), false))
+            {
+                foreach (var util in utilizatori)
+                    sw.WriteLine($"{util.Id};{util.Nume};{util.Username};{util.Email};{util.Parola};{util.Rol}");
+            }
         }
 
         public void AdaugaComanda(Comanda comanda)

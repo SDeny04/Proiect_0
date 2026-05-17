@@ -18,18 +18,23 @@ namespace Magazin.WPF
     {
         public int Id { get; set; }
         public int IdClient { get; set; }
-        public List<int> IdProduse { get; set; } = new();
-        public DateTime DataComenzii { get; set; }
-        public double Total { get; set; }
-        public string ProduseText => string.Join(", ", IdProduse);
+        public string ProduseText { get; set; }
+        public string DataComenzii { get; set; }
+        public string Total { get; set; }
 
-        public ComandaViewModel(Comanda c)
+        public ComandaViewModel(Comanda c, List<Produs> produse)
         {
             Id = c.Id;
             IdClient = c.IdClient;
-            IdProduse = c.IdProduse;
-            DataComenzii = c.DataComenzii;
-            Total = c.Total;
+            Total = c.Total.ToString("N2");
+            DataComenzii = c.DataComenzii.ToString("dd/MM/yyyy HH:mm");
+
+            var numeProduse = c.IdProduse.Select(id => 
+            {
+                var prod = produse.FirstOrDefault(p => p.Id == id);
+                return prod != null ? prod.Nume : $"Produs necunoscut ({id})";
+            });
+            ProduseText = string.Join(", ", numeProduse);
         }
     }
 
@@ -119,7 +124,7 @@ namespace Magazin.WPF
             try
             {
                 toateProdusele = magazin.GetProduse();
-                toateComenzile = comandaAdmin.GetComenzi().Select(c => new ComandaViewModel(c)).ToList();
+                toateComenzile = comandaAdmin.GetComenzi().Select(c => new ComandaViewModel(c, toateProdusele)).ToList();
                 totiUtilizatorii = utilizatorAdmin.GetUtilizatori();
             }
             catch
@@ -143,7 +148,7 @@ namespace Magazin.WPF
 
             // Comenzi
             TxtTotalComenzi.Text = toateComenzile.Count.ToString();
-            double venituri = toateComenzile.Sum(c => c.Total);
+            double venituri = toateComenzile.Sum(c => double.TryParse(c.Total, out double v) ? v : 0);
             TxtVenituri.Text = $"Venituri: {venituri:N2} RON";
 
             // Utilizatori
@@ -204,7 +209,8 @@ namespace Magazin.WPF
             if (PanelFiltruCategorie != null) PanelFiltruCategorie.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (PanelFiltruData != null) PanelFiltruData.Visibility = tab == 1 ? Visibility.Visible : Visibility.Collapsed;
             if (PanelDetaliiProdus != null) PanelDetaliiProdus.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
-            if (BtnEditeazaProdus != null) BtnEditeazaProdus.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelButoaneProduse != null) PanelButoaneProduse.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelButoaneUtilizatori != null) PanelButoaneUtilizatori.Visibility = tab == 2 ? Visibility.Visible : Visibility.Collapsed;
 
             TxtSearch.Text = "";
             ActualizeazaGrid();
@@ -268,9 +274,14 @@ namespace Magazin.WPF
                     var comenziFiltrate = toateComenzile.Where(c => {
                         bool matchSearch = string.IsNullOrEmpty(filtru) ||
                                            (criteriu == "ID" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru))) ||
-                                           (criteriu == "General" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.ToString("N2").Contains(filtru)));
+                                           (criteriu == "General" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.Contains(filtru)));
                         
-                        bool matchData = !dataFiltru.HasValue || c.DataComenzii.Date == dataFiltru.Value.Date;
+                        bool matchData = !dataFiltru.HasValue;
+                        if (dataFiltru.HasValue && DateTime.TryParse(c.DataComenzii, out DateTime dataComenziiParsed))
+                        {
+                            matchData = dataComenziiParsed.Date == dataFiltru.Value.Date;
+                        }
+
                         return matchSearch && matchData;
                     }).ToList();
 
@@ -305,8 +316,7 @@ namespace Magazin.WPF
             if (GridProduse.SelectedItem is Produs produs)
             {
                 BtnEditeazaProdus.IsEnabled = true;
-                TxtDetaliiNume.Text = produs.Nume;
-                TxtDetaliiNume.Foreground = new SolidColorBrush(Colors.Black);
+                if (BtnStergeProdus != null) BtnStergeProdus.IsEnabled = true;
 
                 ListOptiuniProdus.Items.Clear();
                 if (produs.OptiuniProdus == Optiuni.Niciuna)
@@ -324,9 +334,94 @@ namespace Magazin.WPF
             else
             {
                 BtnEditeazaProdus.IsEnabled = false;
-                TxtDetaliiNume.Text = "Selectează un produs";
-                TxtDetaliiNume.Foreground = new SolidColorBrush(Colors.Gray);
+                if (BtnStergeProdus != null) BtnStergeProdus.IsEnabled = false;
                 ListOptiuniProdus.Items.Clear();
+            }
+        }
+
+        private void GridUtilizatori_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator u)
+            {
+                BtnEditeazaUtilizator.IsEnabled = true;
+                BtnStergeUtilizator.IsEnabled = true;
+            }
+            else
+            {
+                BtnEditeazaUtilizator.IsEnabled = false;
+                BtnStergeUtilizator.IsEnabled = false;
+            }
+        }
+
+        // ═══════ UTILIZATORI ACTION EVENTS ═══════
+        private void BtnAdaugaUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            var addWin = new UtilizatorWindow()
+            {
+                Owner = this
+            };
+
+            if (addWin.ShowDialog() == true && addWin.UtilizatorModificat != null)
+            {
+                try
+                {
+                    var u = addWin.UtilizatorModificat;
+                    utilizatorAdmin.Inregistrare(u.Nume, u.Username, u.Email, u.Parola, u.Rol);
+                    IncarcaDate();
+                    MessageBox.Show("Utilizatorul a fost adăugat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Eroare la adăugarea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnEditeazaUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator uSelectat)
+            {
+                var editWin = new UtilizatorWindow(uSelectat)
+                {
+                    Owner = this
+                };
+
+                if (editWin.ShowDialog() == true && editWin.UtilizatorModificat != null)
+                {
+                    try
+                    {
+                        utilizatorAdmin.UpdateUtilizator(editWin.UtilizatorModificat);
+                        IncarcaDate();
+                        MessageBox.Show("Utilizatorul a fost actualizat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la modificarea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void BtnStergeUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator uSelectat)
+            {
+                var result = MessageBox.Show($"Sigur doriți să ștergeți utilizatorul {uSelectat.Username}?", 
+                    "Confirmare Ștergere", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        utilizatorAdmin.StergeUtilizator(uSelectat.Id);
+                        IncarcaDate();
+                        MessageBox.Show("Utilizatorul a fost șters.", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la ștergerea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
             }
         }
 
@@ -382,6 +477,30 @@ namespace Magazin.WPF
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Eroare la modificarea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ═══════ DELETE PRODUCT ═══════
+        private void BtnStergeProdus_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produsSelectat)
+            {
+                var result = MessageBox.Show($"Sigur doriți să ștergeți produsul {produsSelectat.Nume}?", 
+                    "Confirmare Ștergere", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        magazin.StergeProdus(produsSelectat.Id);
+                        IncarcaDate();
+                        MessageBox.Show("Produsul a fost șters.", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la ștergerea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }

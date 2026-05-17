@@ -3,14 +3,12 @@ using Magazin.Models;
 
 namespace Magazin.StocareDate
 {
-    public interface IStocareData
+    public interface IStocareData : IUtilizatorCRUD
     {
         void AdaugaProdus(Produs produs);
         List<Produs> GetProduse();
         void UpdateProdus(Produs produs);
-
-        void AdaugaUtilizator(Utilizator utilizator);
-        List<Utilizator> GetUtilizatori();
+        void DeleteProdus(int id);
 
         void AdaugaComanda(Comanda comanda);
         List<Comanda> GetComenzi();
