@@ -8,13 +8,13 @@ namespace Magazin.WPF
         public Utilizator UtilizatorModificat { get; private set; }
         private int _idUtilizator = 0;
 
-        public UtilizatorWindow(Utilizator utilizator = null)
+        public UtilizatorWindow(Utilizator utilizator = null, bool isReadOnlyRole = false)
         {
             InitializeComponent();
 
             if (utilizator != null)
             {
-                TxtTitlu.Text = "Editeaza Utilizator";
+                TxtTitlu.Text = isReadOnlyRole ? "Contul Meu" : "Editeaza Utilizator";
                 _idUtilizator = utilizator.Id;
                 TxtNume.Text = utilizator.Nume;
                 TxtUsername.Text = utilizator.Username;
@@ -25,6 +25,11 @@ namespace Magazin.WPF
             else
             {
                 CboRol.SelectedIndex = 0;
+            }
+
+            if (isReadOnlyRole)
+            {
+                CboRol.IsEnabled = false;
             }
         }
 

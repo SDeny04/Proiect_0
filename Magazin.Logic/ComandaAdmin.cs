@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Magazin.Models;
 using Magazin.StocareDate;
@@ -50,7 +50,15 @@ namespace Magazin.Logic
         public void AdaugaComanda(int idClient, List<int> produseId)
         {
             var toateProdusele = stocare.GetProduse();
-            double total = toateProdusele.Where(p => produseId.Contains(p.Id)).Sum(p => p.Pret);
+            double total = 0;
+            foreach (var pId in produseId)
+            {
+                var produs = toateProdusele.FirstOrDefault(p => p.Id == pId);
+                if (produs != null)
+                {
+                    total += produs.Pret;
+                }
+            }
 
             Comanda comandaNoua = new Comanda(nextId++, idClient, produseId, total);
             stocare.AdaugaComanda(comandaNoua);

@@ -1,32 +1,75 @@
 <Window x:Class="Magazin.WPF.UtilizatorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Gestionare Utilizator" Height="450" Width="350"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" SizeToContent="Height">
+        Title="Gestionare Utilizator" Height="520" Width="380"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" SizeToContent="Height"
+        Background="#0f172a"
+        Foreground="#f8fafc">
 
     <Window.Resources>
         <Style TargetType="TextBlock">
             <Setter Property="Margin" Value="0,0,0,5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="FontSize" Value="13"/>
         </Style>
+
         <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" CornerRadius="6" BorderBrush="#334155" BorderThickness="1" Background="#1e293b">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8b5cf6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style TargetType="PasswordBox">
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+
+        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="Height" Value="38"/>
         </Style>
+
         <Style TargetType="Button">
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Padding" Value="12"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Background" Value="#8b5cf6"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#7c3aed"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="25">
         <StackPanel>
-            <TextBlock x:Name="TxtTitlu" Text="Adauga Utilizator" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+            <TextBlock x:Name="TxtTitlu" Text="Adăugare Utilizator" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+            <TextBlock Text="Introduceți informațiile noului utilizator." Foreground="#64748b" FontWeight="Normal" FontSize="12" Margin="0,0,0,10"/>
+            <Separator Margin="0,0,0,15" Background="#1e293b"/>
 
             <TextBlock Text="Nume Complet" />
             <TextBox x:Name="TxtNume" />
@@ -37,18 +80,18 @@
             <TextBlock Text="Email" />
             <TextBox x:Name="TxtEmail" />
 
-            <TextBlock Text="Parola" />
+            <TextBlock Text="Parolă" />
             <TextBox x:Name="TxtParola" />
 
             <TextBlock Text="Rol Utilizator" />
-            <ComboBox x:Name="CboRol" Padding="5" Margin="0,0,0,20">
-                <ComboBoxItem Content="Client"/>
+            <ComboBox x:Name="CboRol">
+                <ComboBoxItem Content="Client" IsSelected="True"/>
                 <ComboBoxItem Content="Admin"/>
             </ComboBox>
 
-            <TextBlock x:Name="TxtError" Foreground="Red" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" FontWeight="Normal" />
+            <TextBlock x:Name="TxtError" Foreground="#ef4444" TextWrapping="Wrap" Margin="0,0,0,15" Visibility="Collapsed" FontWeight="Normal" FontSize="12" />
 
-            <Button Content="Salveaza" Click="BtnSave_Click" Background="#cce5ff"/>
+            <Button Content="Salvează Utilizator" Click="BtnSave_Click" Height="42"/>
         </StackPanel>
     </Grid>
 </Window>

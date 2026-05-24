@@ -1,0 +1,785 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Magazin.Logic;
+using Magazin.Models;
+using Magazin.StocareDate;
+
+namespace Magazin.WPF
+{
+    /// <summary>
+    /// View model wrapper for Comanda to expose ProduseText for binding.
+    /// </summary>
+    public class ComandaViewModel
+    {
+        public int Id { get; set; }
+        public int IdClient { get; set; }
+        public string ProduseText { get; set; }
+        public string DataComenzii { get; set; }
+        public string Total { get; set; }
+
+        public ComandaViewModel(Comanda c, List<Produs> produse)
+        {
+            Id = c.Id;
+            IdClient = c.IdClient;
+            Total = c.Total.ToString("N2");
+            DataComenzii = c.DataComenzii.ToString("dd/MM/yyyy HH:mm");
+
+            var numeProduse = c.IdProduse.Select(id => 
+            {
+                var prod = produse.FirstOrDefault(p => p.Id == id);
+                return prod != null ? prod.Nume : $"Produs necunoscut ({id})";
+            });
+            ProduseText = string.Join(", ", numeProduse);
+        }
+    }
+
+    public partial class MainWindow : Window
+    {
+        private readonly Utilizator utilizatorConectat;
+
+        private MagazinAdmin magazin = null!;
+        private ComandaAdmin comandaAdmin = null!;
+        private UtilizatorAdmin utilizatorAdmin = null!;
+
+        private List<Produs> toateProdusele = new();
+        private List<ComandaViewModel> toateComenzile = new();
+        private List<Utilizator> totiUtilizatorii = new();
+
+        private int tabActiv = 0; // 0=Produse, 1=Comenzi, 2=Utilizatori
+
+        public MainWindow() : this(new Utilizator(1, "Administrator", "admin", "admin@magazin.ro", "admin", TipRol.Admin))
+        {
+        }
+
+        public MainWindow(Utilizator user)
+        {
+            utilizatorConectat = user;
+            InitializeComponent();
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ConfigureazaCaleFisiere();
+
+                magazin = new MagazinAdmin();
+                comandaAdmin = new ComandaAdmin();
+                utilizatorAdmin = new UtilizatorAdmin();
+                
+                // Populam CboFiltruCategorie
+                CboFiltruCategorie.Items.Clear();
+                CboFiltruCategorie.Items.Add("Toate");
+                foreach (Categorie cat in Enum.GetValues(typeof(Categorie)))
+                {
+                    CboFiltruCategorie.Items.Add(cat.ToString());
+                }
+                CboFiltruCategorie.SelectedIndex = 0;
+
+                // Afisam datele utilizatorului conectat
+                TxtUsernameConectat.Text = utilizatorConectat.Nume;
+                TxtRolConectat.Text = utilizatorConectat.Rol == TipRol.Admin ? "Administrator" : "Client";
+                TxtRolConectat.Foreground = new SolidColorBrush(utilizatorConectat.Rol == TipRol.Admin ? Color.FromRgb(59, 130, 246) : Color.FromRgb(16, 185, 129));
+
+                // Restrictii bazate pe Rol (Securitate)
+                AplicaRestrictiiRol();
+
+                IncarcaDate();
+
+                // AUTOMATED TEST
+                var prod = magazin.GetProduse().FirstOrDefault();
+                if (prod != null)
+                {
+                    prod.Stoc = prod.Stoc == 999 ? 888 : 999;
+                    magazin.UpdateProdus(prod);
+                    System.IO.File.AppendAllText("autotest.txt", $"Updated product {prod.Id} stoc to {prod.Stoc}\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Eroare la încărcarea datelor:\n{ex.Message}",
+                    "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void AplicaRestrictiiRol()
+        {
+            if (utilizatorConectat.Rol == TipRol.Client)
+            {
+                // Ascundem butoanele de administrare produse
+                PanelButoaneProduse.Visibility = Visibility.Collapsed;
+                MenuAdaugaProdus.Visibility = Visibility.Collapsed;
+
+                // Ascundem tab-ul de utilizatori si actiunile asociate
+                BtnTabUtilizatori.Visibility = Visibility.Collapsed;
+                MenuTabUtilizatori.Visibility = Visibility.Collapsed;
+                PanelButoaneUtilizatori.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                PanelButoaneProduse.Visibility = Visibility.Visible;
+                MenuAdaugaProdus.Visibility = Visibility.Visible;
+                BtnTabUtilizatori.Visibility = Visibility.Visible;
+                MenuTabUtilizatori.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ConfigureazaCaleFisiere()
+        {
+            // Path setup in case it is empty
+            if (AdministrareProduseFisierText.BasePath != null)
+                return;
+
+            string? dir = AppDomain.CurrentDomain.BaseDirectory;
+            while (dir != null)
+            {
+                string uiPath = Path.Combine(dir, "Magazin.UI", "bin", "Debug", "net10.0");
+                if (File.Exists(Path.Combine(uiPath, "produse.txt")))
+                {
+                    AdministrareProduseFisierText.BasePath = uiPath;
+                    return;
+                }
+                dir = Directory.GetParent(dir)?.FullName;
+            }
+
+            if (File.Exists("produse.txt"))
+                return;
+        }
+
+        private void IncarcaDate()
+        {
+            try
+            {
+                toateProdusele = magazin.GetProduse();
+                
+                // Incarcam comenzi. Daca e Client, le incarcam doar pe ale lui
+                var comenziIncarcate = comandaAdmin.GetComenzi();
+                if (utilizatorConectat.Rol == TipRol.Client)
+                {
+                    comenziIncarcate = comenziIncarcate.Where(c => c.IdClient == utilizatorConectat.Id).ToList();
+                }
+                toateComenzile = comenziIncarcate.Select(c => new ComandaViewModel(c, toateProdusele)).ToList();
+                
+                totiUtilizatorii = utilizatorAdmin.GetUtilizatori();
+            }
+            catch
+            {
+                toateProdusele = new();
+                toateComenzile = new();
+                totiUtilizatorii = new();
+            }
+
+            ActualizeazaStatistici();
+            ActualizeazaGrid();
+        }
+
+        // ═══════ STATISTICS ═══════
+        private void ActualizeazaStatistici()
+        {
+            // Produse
+            TxtTotalProduse.Text = toateProdusele.Count.ToString();
+            int stocTotal = toateProdusele.Sum(p => p.Stoc);
+            TxtStocTotal.Text = $"Stoc total: {stocTotal:N0} buc.";
+
+            // Comenzi
+            TxtTotalComenzi.Text = toateComenzile.Count.ToString();
+            double venituri = toateComenzile.Sum(c => double.TryParse(c.Total, out double v) ? v : 0);
+            TxtVenituri.Text = $"{venituri:N2} RON";
+
+            // Utilizatori
+            TxtTotalUtilizatori.Text = totiUtilizatorii.Count.ToString();
+            int admini = totiUtilizatorii.Count(u => u.Rol == TipRol.Admin);
+            int clienti = totiUtilizatorii.Count(u => u.Rol == TipRol.Client);
+            TxtAdmini.Text = $"Admini: {admini} | Clienți: {clienti}";
+
+            // Categorii
+            if (toateProdusele.Count > 0)
+            {
+                var categoriiDistincte = toateProdusele.Select(p => p.CategorieProdus).Distinct().Count();
+                TxtTotalCategorii.Text = categoriiDistincte.ToString();
+
+                var topCategorie = toateProdusele
+                    .GroupBy(p => p.CategorieProdus)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault();
+
+                TxtCategTop.Text = topCategorie != null ? $"Top: {topCategorie.Key} ({topCategorie.Count()})" : "Top: -";
+            }
+            else
+            {
+                TxtTotalCategorii.Text = "0";
+                TxtCategTop.Text = "Top: -";
+            }
+        }
+
+        // ═══════ TAB SWITCHING ═══════
+        private void SetTabActiv(int tab)
+        {
+            tabActiv = tab;
+
+            // Reset tab button font weights, backgrounds and foregrounds
+            BtnTabProduse.FontWeight = FontWeights.Normal;
+            BtnTabComenzi.FontWeight = FontWeights.Normal;
+            BtnTabUtilizatori.FontWeight = FontWeights.Normal;
+
+            BtnTabProduse.Background = new SolidColorBrush(Colors.Transparent);
+            BtnTabComenzi.Background = new SolidColorBrush(Colors.Transparent);
+            BtnTabUtilizatori.Background = new SolidColorBrush(Colors.Transparent);
+
+            BtnTabProduse.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184)); // #94a3b8
+            BtnTabComenzi.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184));
+            BtnTabUtilizatori.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184));
+
+            // Set active tab styling
+            switch (tab)
+            {
+                case 0:
+                    BtnTabProduse.FontWeight = FontWeights.Bold;
+                    BtnTabProduse.Background = new SolidColorBrush(Color.FromRgb(59, 130, 246)); // #3b82f6
+                    BtnTabProduse.Foreground = new SolidColorBrush(Colors.White);
+                    break;
+                case 1:
+                    BtnTabComenzi.FontWeight = FontWeights.Bold;
+                    BtnTabComenzi.Background = new SolidColorBrush(Color.FromRgb(59, 130, 246));
+                    BtnTabComenzi.Foreground = new SolidColorBrush(Colors.White);
+                    break;
+                case 2:
+                    BtnTabUtilizatori.FontWeight = FontWeights.Bold;
+                    BtnTabUtilizatori.Background = new SolidColorBrush(Color.FromRgb(59, 130, 246));
+                    BtnTabUtilizatori.Foreground = new SolidColorBrush(Colors.White);
+                    break;
+            }
+
+            // Visibility of Grids
+            GridProduse.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            GridComenzi.Visibility = tab == 1 ? Visibility.Visible : Visibility.Collapsed;
+            GridUtilizatori.Visibility = tab == 2 ? Visibility.Visible : Visibility.Collapsed;
+
+            // Hide/Show specific filters
+            if (PanelFiltruCategorie != null) PanelFiltruCategorie.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelFiltruPret != null) PanelFiltruPret.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelFiltruStoc != null) PanelFiltruStoc.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelFiltruOptiuni != null) PanelFiltruOptiuni.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (PanelFiltruData != null) PanelFiltruData.Visibility = tab == 1 ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Populeaza CboSortare cu optiuni valide pentru tab-ul curent
+            if (CboSortare != null)
+            {
+                CboSortare.SelectionChanged -= CboSortare_SelectionChanged; // detasam temporar evenimentul
+                CboSortare.Items.Clear();
+
+                if (tab == 0) // Produse
+                {
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Implicit (ID)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Nume (A - Z)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Nume (Z - A)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Preț (Crescător)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Preț (Descrescător)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Stoc (Crescător)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Stoc (Descrescător)" });
+                }
+                else if (tab == 1) // Comenzi
+                {
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Implicit (ID)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Total (Crescător)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Total (Descrescător)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Dată (Recentă)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Dată (Veche)" });
+                }
+                else if (tab == 2) // Utilizatori
+                {
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Implicit (ID)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Nume (A - Z)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Nume (Z - A)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Username (A - Z)" });
+                    CboSortare.Items.Add(new ComboBoxItem { Content = "Username (Z - A)" });
+                }
+
+                CboSortare.SelectedIndex = 0;
+                CboSortare.SelectionChanged += CboSortare_SelectionChanged; // re-atasam evenimentul
+            }
+
+            if (PanelSortare != null) PanelSortare.Visibility = Visibility.Visible;
+            
+            if (PanelDetaliiProdus != null) PanelDetaliiProdus.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Re-apply role restrictions for action buttons on tabs
+            if (utilizatorConectat.Rol == TipRol.Admin)
+            {
+                if (PanelButoaneProduse != null) PanelButoaneProduse.Visibility = tab == 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (PanelButoaneUtilizatori != null) PanelButoaneUtilizatori.Visibility = tab == 2 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            TxtSearch.Text = "";
+            ActualizeazaGrid();
+        }
+
+        private void BtnTabProduse_Click(object sender, RoutedEventArgs e) => SetTabActiv(0);
+        private void BtnTabComenzi_Click(object sender, RoutedEventArgs e) => SetTabActiv(1);
+        private void BtnTabUtilizatori_Click(object sender, RoutedEventArgs e) => SetTabActiv(2);
+
+        // ═══════ MENU & HEADER EVENTS ═══════
+        private void MenuItemIesire_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void MenuItemDespre_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Aplicație de gestionare Magazin PC.\nDesign Premium cu suport MVVM, Validare legare date, Autentificare cu roluri și Căutare avansată.", 
+                "Despre Aplicatie", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            var loginWin = new LoginWindow();
+            this.Hide();
+            if (loginWin.ShowDialog() == true && loginWin.LoggedUser != null)
+            {
+                var mainWin = new MainWindow(loginWin.LoggedUser);
+                mainWin.Show();
+                this.Close();
+            }
+            else
+            {
+                this.Close();
+            }
+        }
+
+        // ═══════ ADVANCED SEARCH / FILTER ═══════
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void CboCriteriuCautare_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void CboFiltruCategorie_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void DateFiltru_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void TxtFiltruPretMin_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void TxtFiltruPretMax_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void ChkFiltruStoc_Checked(object sender, RoutedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void ChkFiltruStoc_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void ChkFiltruOptiune_Changed(object sender, RoutedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void CboSortare_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ActualizeazaGrid();
+        }
+
+        private void ActualizeazaGrid()
+        {
+            if (TxtSearch == null || CboCriteriuCautare == null || GridProduse == null || GridComenzi == null || GridUtilizatori == null) return;
+
+            string filtru = TxtSearch.Text.Trim().ToLower();
+            string criteriu = (CboCriteriuCautare.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "General";
+
+            switch (tabActiv)
+            {
+                case 0: // Produse
+                    string catFiltru = CboFiltruCategorie?.SelectedItem?.ToString() ?? "Toate";
+                    
+                    var produseFiltrate = toateProdusele.Where(p => {
+                        // Text Search
+                        bool matchSearch = string.IsNullOrEmpty(filtru) ||
+                                           (criteriu == "ID" && p.Id.ToString().Contains(filtru)) ||
+                                           (criteriu == "Nume/Username" && p.Nume.ToLower().Contains(filtru)) ||
+                                           (criteriu == "General" && (p.Nume.ToLower().Contains(filtru) || p.CategorieProdus.ToString().ToLower().Contains(filtru) || p.Id.ToString().Contains(filtru)));
+                        
+                        // Category Filter
+                        bool matchCat = catFiltru == "Toate" || p.CategorieProdus.ToString() == catFiltru;
+
+                        // Min Price Filter
+                        bool matchMinPrice = true;
+                        if (TxtFiltruPretMin != null && !string.IsNullOrWhiteSpace(TxtFiltruPretMin.Text))
+                        {
+                            if (double.TryParse(TxtFiltruPretMin.Text.Trim(), out double minVal))
+                                matchMinPrice = p.Pret >= minVal;
+                        }
+
+                        // Max Price Filter
+                        bool matchMaxPrice = true;
+                        if (TxtFiltruPretMax != null && !string.IsNullOrWhiteSpace(TxtFiltruPretMax.Text))
+                        {
+                            if (double.TryParse(TxtFiltruPretMax.Text.Trim(), out double maxVal))
+                                matchMaxPrice = p.Pret <= maxVal;
+                        }
+
+                        // Stock Filter
+                        bool matchStoc = true;
+                        if (ChkFiltruStoc != null && ChkFiltruStoc.IsChecked == true)
+                        {
+                            matchStoc = p.Stoc > 0;
+                        }
+
+                        // Options Filters
+                        bool matchGarantie = ChkFiltruGarantie == null || ChkFiltruGarantie.IsChecked != true || p.OptiuniProdus.HasFlag(Optiuni.Garantie);
+                        bool matchDrivere = ChkFiltruDrivere == null || ChkFiltruDrivere.IsChecked != true || p.OptiuniProdus.HasFlag(Optiuni.SuportDrivere);
+                        bool matchLivrare = ChkFiltruLivrare == null || ChkFiltruLivrare.IsChecked != true || p.OptiuniProdus.HasFlag(Optiuni.LivrareRapida);
+                        bool matchReturnare = ChkFiltruReturnare == null || ChkFiltruReturnare.IsChecked != true || p.OptiuniProdus.HasFlag(Optiuni.Returnare14Zile);
+
+                        return matchSearch && matchCat && matchMinPrice && matchMaxPrice && matchStoc && matchGarantie && matchDrivere && matchLivrare && matchReturnare;
+                    });
+
+                    // Sorting
+                    if (CboSortare != null)
+                    {
+                        int sortIndex = CboSortare.SelectedIndex;
+                        switch (sortIndex)
+                        {
+                            case 1: // Nume A-Z
+                                produseFiltrate = produseFiltrate.OrderBy(p => p.Nume);
+                                break;
+                            case 2: // Nume Z-A
+                                produseFiltrate = produseFiltrate.OrderByDescending(p => p.Nume);
+                                break;
+                            case 3: // Pret Crescator
+                                produseFiltrate = produseFiltrate.OrderBy(p => p.Pret);
+                                break;
+                            case 4: // Pret Descrescator
+                                produseFiltrate = produseFiltrate.OrderByDescending(p => p.Pret);
+                                break;
+                            case 5: // Stoc Crescator
+                                produseFiltrate = produseFiltrate.OrderBy(p => p.Stoc);
+                                break;
+                            case 6: // Stoc Descrescator
+                                produseFiltrate = produseFiltrate.OrderByDescending(p => p.Stoc);
+                                break;
+                        }
+                    }
+
+                    var prodList = produseFiltrate.ToList();
+                    GridProduse.ItemsSource = prodList;
+                    VerificaEmpty(prodList.Count);
+                    break;
+
+                case 1: // Comenzi
+                    DateTime? dataFiltru = DateFiltru?.SelectedDate;
+                    
+                    var comenziFiltrate = toateComenzile.Where(c => {
+                        bool matchSearch = string.IsNullOrEmpty(filtru) ||
+                                           (criteriu == "ID" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru))) ||
+                                           (criteriu == "General" && (c.Id.ToString().Contains(filtru) || c.IdClient.ToString().Contains(filtru) || c.Total.Contains(filtru) || c.ProduseText.ToLower().Contains(filtru)));
+                        
+                        bool matchData = !dataFiltru.HasValue;
+                        if (dataFiltru.HasValue && DateTime.TryParse(c.DataComenzii, out DateTime dataComenziiParsed))
+                        {
+                            matchData = dataComenziiParsed.Date == dataFiltru.Value.Date;
+                        }
+
+                        return matchSearch && matchData;
+                    });
+
+                    // Sorting for orders
+                    if (CboSortare != null)
+                    {
+                        int sortIndex = CboSortare.SelectedIndex;
+                        switch (sortIndex)
+                        {
+                            case 1: // Total crescator
+                                comenziFiltrate = comenziFiltrate.OrderBy(c => double.TryParse(c.Total, out double val) ? val : 0);
+                                break;
+                            case 2: // Total descrescator
+                                comenziFiltrate = comenziFiltrate.OrderByDescending(c => double.TryParse(c.Total, out double val) ? val : 0);
+                                break;
+                            case 3: // Data recenta
+                                comenziFiltrate = comenziFiltrate.OrderByDescending(c => DateTime.TryParse(c.DataComenzii, out DateTime dt) ? dt : DateTime.MinValue);
+                                break;
+                            case 4: // Data veche
+                                comenziFiltrate = comenziFiltrate.OrderBy(c => DateTime.TryParse(c.DataComenzii, out DateTime dt) ? dt : DateTime.MinValue);
+                                break;
+                        }
+                    }
+
+                    var comList = comenziFiltrate.ToList();
+                    GridComenzi.ItemsSource = comList;
+                    VerificaEmpty(comList.Count);
+                    break;
+
+                case 2: // Utilizatori
+                    var utilizatoriFiltrati = totiUtilizatorii.Where(u => {
+                        bool matchSearch = string.IsNullOrEmpty(filtru) ||
+                                           (criteriu == "ID" && u.Id.ToString().Contains(filtru)) ||
+                                           (criteriu == "Nume/Username" && (u.Nume.ToLower().Contains(filtru) || u.Username.ToLower().Contains(filtru))) ||
+                                           (criteriu == "General" && (u.Nume.ToLower().Contains(filtru) || u.Username.ToLower().Contains(filtru) || u.Email.ToLower().Contains(filtru) || u.Rol.ToString().ToLower().Contains(filtru)));
+                        return matchSearch;
+                    });
+
+                    if (CboSortare != null)
+                    {
+                        int sortIndex = CboSortare.SelectedIndex;
+                        switch (sortIndex)
+                        {
+                            case 1: // Nume A-Z
+                                utilizatoriFiltrati = utilizatoriFiltrati.OrderBy(u => u.Nume);
+                                break;
+                            case 2: // Nume Z-A
+                                utilizatoriFiltrati = utilizatoriFiltrati.OrderByDescending(u => u.Nume);
+                                break;
+                            case 3: // Username A-Z
+                                utilizatoriFiltrati = utilizatoriFiltrati.OrderBy(u => u.Username);
+                                break;
+                            case 4: // Username Z-A
+                                utilizatoriFiltrati = utilizatoriFiltrati.OrderByDescending(u => u.Username);
+                                break;
+                        }
+                    }
+
+                    var utList = utilizatoriFiltrati.ToList();
+                    GridUtilizatori.ItemsSource = utList;
+                    VerificaEmpty(utList.Count);
+                    break;
+            }
+        }
+
+        private void VerificaEmpty(int count)
+        {
+            if (PanelEmpty != null)
+                 PanelEmpty.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // ═══════ SELECTION EVENTS ═══════
+        private void GridProduse_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produs)
+            {
+                BtnEditeazaProdus.IsEnabled = true;
+                if (BtnStergeProdus != null) BtnStergeProdus.IsEnabled = true;
+
+                ListOptiuniProdus.Items.Clear();
+                if (produs.OptiuniProdus == Optiuni.Niciuna)
+                {
+                    ListOptiuniProdus.Items.Add("Fără opțiuni extra");
+                }
+                else
+                {
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.Garantie)) ListOptiuniProdus.Items.Add("✓ Garanție extinsă");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.SuportDrivere)) ListOptiuniProdus.Items.Add("✓ Suport instalare drivere");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.LivrareRapida)) ListOptiuniProdus.Items.Add("✓ Livrare Rapidă");
+                    if (produs.OptiuniProdus.HasFlag(Optiuni.Returnare14Zile)) ListOptiuniProdus.Items.Add("✓ Returnare 14 Zile");
+                }
+            }
+            else
+            {
+                BtnEditeazaProdus.IsEnabled = false;
+                if (BtnStergeProdus != null) BtnStergeProdus.IsEnabled = false;
+                ListOptiuniProdus.Items.Clear();
+            }
+        }
+
+        private void GridUtilizatori_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator u)
+            {
+                BtnEditeazaUtilizator.IsEnabled = true;
+                BtnStergeUtilizator.IsEnabled = true;
+            }
+            else
+            {
+                BtnEditeazaUtilizator.IsEnabled = false;
+                BtnStergeUtilizator.IsEnabled = false;
+            }
+        }
+
+        // ═══════ UTILIZATORI ACTION EVENTS ═══════
+        private void BtnAdaugaUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            var addWin = new UtilizatorWindow()
+            {
+                Owner = this
+            };
+
+            if (addWin.ShowDialog() == true && addWin.UtilizatorModificat != null)
+            {
+                try
+                {
+                    var u = addWin.UtilizatorModificat;
+                    utilizatorAdmin.Inregistrare(u.Nume, u.Username, u.Email, u.Parola, u.Rol);
+                    IncarcaDate();
+                    MessageBox.Show("Utilizatorul a fost adăugat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Eroare la adăugarea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void BtnEditeazaUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator uSelectat)
+            {
+                var editWin = new UtilizatorWindow(uSelectat)
+                {
+                    Owner = this
+                };
+
+                if (editWin.ShowDialog() == true && editWin.UtilizatorModificat != null)
+                {
+                    try
+                    {
+                        utilizatorAdmin.UpdateUtilizator(editWin.UtilizatorModificat);
+                        IncarcaDate();
+                        MessageBox.Show("Utilizatorul a fost actualizat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la modificarea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void BtnStergeUtilizator_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridUtilizatori.SelectedItem is Utilizator uSelectat)
+            {
+                var result = MessageBox.Show($"Sigur doriți să ștergeți utilizatorul {uSelectat.Username}?", 
+                    "Confirmare Ștergere", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        utilizatorAdmin.StergeUtilizator(uSelectat.Id);
+                        IncarcaDate();
+                        MessageBox.Show("Utilizatorul a fost șters.", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la ștergerea utilizatorului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ═══════ ADD PRODUCT ═══════
+        private void BtnAdaugaProdus_Click(object sender, RoutedEventArgs e)
+        {
+            var adaugaWin = new AdaugaProdusWindow
+            {
+                Owner = this
+            };
+
+            if (adaugaWin.ShowDialog() == true && adaugaWin.ProdusNou != null)
+            {
+                try
+                {
+                    magazin.AdaugaProdus(adaugaWin.ProdusNou);
+                    IncarcaDate();
+                    SetTabActiv(0);
+                    TxtSearch.Text = "";
+                }
+                catch (Exception ex)
+                {
+                   MessageBox.Show($"Eroare la adăugarea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // ═══════ EDIT PRODUCT ═══════
+        private void BtnEditeazaProdus_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produsSelectat)
+            {
+                var editWin = new EditeazaProdusWindow(produsSelectat)
+                {
+                    Owner = this
+                };
+
+                if (editWin.ShowDialog() == true && editWin.ProdusModificat != null)
+                {
+                    try
+                    {
+                        magazin.UpdateProdus(editWin.ProdusModificat);
+                        IncarcaDate();
+                        MessageBox.Show("Produsul a fost actualizat cu succes!", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la modificarea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ═══════ DELETE PRODUCT ═══════
+        private void BtnStergeProdus_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridProduse.SelectedItem is Produs produsSelectat)
+            {
+                var result = MessageBox.Show($"Sigur doriți să ștergeți produsul {produsSelectat.Nume}?", 
+                    "Confirmare Ștergere", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        magazin.StergeProdus(produsSelectat.Id);
+                        IncarcaDate();
+                        MessageBox.Show("Produsul a fost șters.", "Succes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Eroare la ștergerea produsului:\n{ex.Message}", "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ═══════ REFRESH ═══════
+        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                magazin = new MagazinAdmin();
+                comandaAdmin = new ComandaAdmin();
+                utilizatorAdmin = new UtilizatorAdmin();
+                IncarcaDate();
+                MessageBox.Show("Datele au fost reîncărcate cu succes!",
+                    "Reîncărcare", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Eroare la reîncărcare:\n{ex.Message}",
+                    "Eroare", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+}

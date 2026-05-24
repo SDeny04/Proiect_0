@@ -1,0 +1,73 @@
+<Window x:Class="Magazin.WPF.DetaliiProdusWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Detalii Produs" Height="400" Width="400"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent">
+
+    <Border Background="#0f172a" CornerRadius="12" BorderBrush="#334155" BorderThickness="1" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+                <Border Background="#3b82f6" CornerRadius="8" Width="40" Height="40" Margin="0,0,15,0">
+                    <TextBlock Text="ℹ️" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Specificații Produs" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="Informații detaliate" Foreground="#94a3b8" FontSize="12"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Body -->
+            <StackPanel Grid.Row="1">
+                <TextBlock Text="Denumire" Foreground="#64748b" FontSize="12" FontWeight="Bold"/>
+                <TextBlock x:Name="TxtNume" Text="Nume Produs" Foreground="White" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,15"/>
+
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Categorie" Foreground="#64748b" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock x:Name="TxtCategorie" Text="-" Foreground="White" FontSize="14"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Disponibilitate" Foreground="#64748b" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock x:Name="TxtStoc" Text="0 buc." Foreground="#10b981" FontSize="14" FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Preț" Foreground="#64748b" FontSize="12" FontWeight="Bold"/>
+                <TextBlock x:Name="TxtPret" Text="0.00 RON" Foreground="#3b82f6" FontSize="20" FontWeight="ExtraBold" Margin="0,0,0,15"/>
+
+                <TextBlock Text="Opțiuni Incluse" Foreground="#64748b" FontSize="12" FontWeight="Bold"/>
+                <TextBlock x:Name="TxtOptiuni" Text="-" Foreground="#e2e8f0" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            </StackPanel>
+
+            <!-- Footer -->
+            <Button Grid.Row="2" Content="ÎNCHIDE" Background="#1e293b" Foreground="White" FontWeight="Bold" Padding="10,12" BorderThickness="0" Cursor="Hand" Click="BtnInchide_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#334155"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+    </Border>
+</Window>

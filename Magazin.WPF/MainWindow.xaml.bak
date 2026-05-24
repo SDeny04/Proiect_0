@@ -1,0 +1,535 @@
+<Window x:Class="Magazin.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PC ZONE - Panou Administrare"
+        Height="760" Width="1180"
+        WindowStartupLocation="CenterScreen"
+        Background="#0f172a"
+        Foreground="#f8fafc">
+
+    <Window.Resources>
+        <!-- Custom Sidebar Tab Button Style -->
+        <Style x:Key="SidebarButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="4" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="border" Property="Background" Value="#1e293b"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Header Logout Button Style -->
+        <Style x:Key="HeaderButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#ef4444"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#ef4444"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Action Button Style (Add, Edit, Delete) -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#334155"/>
+                                <Setter Property="Foreground" Value="#64748b"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- DatePicker Style for Dark Theme -->
+        <Style TargetType="DatePicker">
+            <Setter Property="Background" Value="#1e293b"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Height" Value="30"/>
+        </Style>
+
+        <Style TargetType="DatePickerTextBox">
+            <Setter Property="Background" Value="#1e293b"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Textbox Style for Dark Theme -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#1e293b"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#3b82f6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Checkbox Style for Dark Theme -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <!-- Custom Dark Theme DataGrid -->
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#1e293b"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="#1e293b"/>
+            <Setter Property="AlternatingRowBackground" Value="#111827"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#334155"/>
+            <Setter Property="RowHeight" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#f8fafc"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#1e293b"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderThickness="0">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#2563eb"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Menu -->
+            <RowDefinition Height="Auto"/> <!-- PC ZONE Web-like Header -->
+            <RowDefinition Height="*"/>    <!-- Main Layout (Sidebar + Workspace) -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. MENU -->
+        <Menu Grid.Row="0" Background="#0b0f19" Padding="5" BorderBrush="#1e293b" BorderThickness="0,0,0,1">
+            <MenuItem Header="_Fișier" Foreground="White">
+                <MenuItem x:Name="MenuAdaugaProdus" Header="_Adăugă Produs" Click="BtnAdaugaProdus_Click"/>
+                <MenuItem Header="_Reîncarcă Date" Click="BtnRefresh_Click"/>
+                <Separator Background="#1e293b"/>
+                <MenuItem Header="_Deconectare" Click="BtnLogout_Click"/>
+                <MenuItem Header="_Ieșire" Click="MenuItemIesire_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Acțiuni" Foreground="White">
+                <MenuItem Header="Schimbă la Tab Produse" Click="BtnTabProduse_Click"/>
+                <MenuItem Header="Schimbă la Tab Comenzi" Click="BtnTabComenzi_Click"/>
+                <MenuItem x:Name="MenuTabUtilizatori" Header="Schimbă la Tab Utilizatori" Click="BtnTabUtilizatori_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Ajutor" Foreground="White">
+                <MenuItem Header="_Despre aplicație" Click="MenuItemDespre_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- 2. PC ZONE WEB-LIKE HEADER -->
+        <Border Grid.Row="1" Background="#0b0f19" Padding="25,12" BorderBrush="#1e293b" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/> <!-- Logo -->
+                    <ColumnDefinition Width="*"/>   <!-- Web Search Box -->
+                    <ColumnDefinition Width="Auto"/> <!-- User info & Action -->
+                </Grid.ColumnDefinitions>
+
+                <!-- CPU Chip Logo and Branding -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Stylized CPU Icon -->
+                    <Border Background="#3b82f6" Width="32" Height="32" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Grid>
+                            <Border BorderBrush="White" BorderThickness="2" Margin="3" CornerRadius="4"/>
+                            <TextBlock Text="CPU" Foreground="White" FontSize="9" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="PC ZONE" Foreground="White" FontSize="20" FontWeight="ExtraBold"/>
+                        <TextBlock Text="STORE MANAGEMENT" Foreground="#64748b" FontSize="9" FontWeight="Bold"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Center: Mock Web Search Bar containing the ACTUAL TxtSearch -->
+                <Border Grid.Column="1" Background="Transparent" HorizontalAlignment="Center">
+                    <!-- Text box moved down to filters -->
+                </Border>
+
+                <!-- Right Side: User profile & Logout -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0" HorizontalAlignment="Right">
+                        <TextBlock x:Name="TxtUsernameConectat" Text="Nume Utilizator" Foreground="White" FontWeight="Bold" FontSize="13" TextAlignment="Right"/>
+                        <TextBlock x:Name="TxtRolConectat" Text="Admin" Foreground="#3b82f6" FontSize="10" FontWeight="Bold" Margin="0,2,0,0" TextAlignment="Right"/>
+                    </StackPanel>
+
+                    <Button Content="Deconectare" Style="{StaticResource HeaderButton}" Click="BtnLogout_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 3. MAIN LAYOUT -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230"/> <!-- Sidebar Navigation -->
+                <ColumnDefinition Width="*"/>   <!-- Main Workspace -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT SIDEBAR -->
+            <Border Grid.Column="0" Background="#0b0f19" BorderBrush="#1e293b" BorderThickness="0,0,1,0" Padding="15,20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <!-- Sidebar Category Title -->
+                        <Border Background="#1e293b" Padding="12,8" CornerRadius="4" Margin="0,0,0,15">
+                            <TextBlock Text="CATEGORII PANOU" Foreground="#3b82f6" FontWeight="Bold" FontSize="12"/>
+                        </Border>
+
+                        <!-- Vertical tab buttons -->
+                        <Button x:Name="BtnTabProduse" Content="🖥  Produse" Style="{StaticResource SidebarButton}" Click="BtnTabProduse_Click"/>
+                        <Button x:Name="BtnTabComenzi" Content="📦  Comenzi" Style="{StaticResource SidebarButton}" Click="BtnTabComenzi_Click"/>
+                        <Button x:Name="BtnTabUtilizatori" Content="👤  Utilizatori" Style="{StaticResource SidebarButton}" Click="BtnTabUtilizatori_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Margin="0,20,0,0">
+                        <Separator Background="#1e293b" Margin="0,0,0,15"/>
+                        <TextBlock Text="PC Zone Management App" Foreground="#475569" FontSize="10" TextAlignment="Center"/>
+                        <TextBlock Text="v2.5 (Dark Theme)" Foreground="#475569" FontSize="9" TextAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT WORKSPACE -->
+            <Grid Grid.Column="1" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Stats Cards -->
+                    <RowDefinition Height="Auto"/> <!-- Filter Panel & Actions -->
+                    <RowDefinition Height="*"/>    <!-- DataGrid + Details Panel -->
+                </Grid.RowDefinitions>
+
+                <!-- STATS CARDS -->
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Card 1: Produse -->
+                    <Border Grid.Column="0" Background="#1e293b" BorderBrush="#3b82f6" BorderThickness="1,4,1,1" CornerRadius="8" Padding="15" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Text="PRODUSE IN CATALOG" Foreground="#94a3b8" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock x:Name="TxtTotalProduse" Text="0" FontSize="26" FontWeight="Bold" Foreground="White" Margin="0,5"/>
+                            <TextBlock x:Name="TxtStocTotal" Text="Stoc total: 0 buc." Foreground="#64748b" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 2: Comenzi -->
+                    <Border Grid.Column="1" Background="#1e293b" BorderBrush="#10b981" BorderThickness="1,4,1,1" CornerRadius="8" Padding="15" Margin="5,0,5,0">
+                        <StackPanel>
+                            <TextBlock Text="COMENZI PLASATE" Foreground="#94a3b8" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock x:Name="TxtTotalComenzi" Text="0" FontSize="26" FontWeight="Bold" Foreground="White" Margin="0,5"/>
+                            <TextBlock x:Name="TxtVenituri" Text="0.00 RON" Foreground="#10b981" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 3: Utilizatori -->
+                    <Border Grid.Column="2" Background="#1e293b" BorderBrush="#8b5cf6" BorderThickness="1,4,1,1" CornerRadius="8" Padding="15" Margin="5,0,5,0">
+                        <StackPanel>
+                            <TextBlock Text="UTILIZATORI REGISTRI" Foreground="#94a3b8" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock x:Name="TxtTotalUtilizatori" Text="0" FontSize="26" FontWeight="Bold" Foreground="White" Margin="0,5"/>
+                            <TextBlock x:Name="TxtAdmini" Text="Admini: 0 | Clienți: 0" Foreground="#64748b" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 4: Categorii -->
+                    <Border Grid.Column="3" Background="#1e293b" BorderBrush="#f59e0b" BorderThickness="1,4,1,1" CornerRadius="8" Padding="15" Margin="10,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="CATEGORII PRODUSE" Foreground="#94a3b8" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock x:Name="TxtTotalCategorii" Text="0" FontSize="26" FontWeight="Bold" Foreground="White" Margin="0,5"/>
+                            <TextBlock x:Name="TxtCategTop" Text="Top: -" Foreground="#64748b" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ADVANCED FILTER BAR & ACTIONS -->
+                <Border Grid.Row="1" Background="#1e293b" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Action Buttons Row -->
+                        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                            <!-- Left: Active Filters Title -->
+                            <TextBlock Text="Filtrare si ordonare" Foreground="White" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                            <!-- Right: Admin Action Buttons -->
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                <StackPanel x:Name="PanelButoaneProduse" Orientation="Horizontal">
+                                    <Button Content="+ Adăugă Produs" Click="BtnAdaugaProdus_Click" Style="{StaticResource ActionButton}" Background="#3b82f6"/>
+                                    <Button x:Name="BtnEditeazaProdus" Content="✏️ Editează" Click="BtnEditeazaProdus_Click" Style="{StaticResource ActionButton}" Background="#f59e0b" IsEnabled="False"/>
+                                    <Button x:Name="BtnStergeProdus" Content="🗑️ Șterge" Click="BtnStergeProdus_Click" Style="{StaticResource ActionButton}" Background="#ef4444" IsEnabled="False"/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="PanelButoaneUtilizatori" Orientation="Horizontal" Visibility="Collapsed">
+                                    <Button Content="+ Adăugă Utilizator" Click="BtnAdaugaUtilizator_Click" Style="{StaticResource ActionButton}" Background="#8b5cf6"/>
+                                    <Button x:Name="BtnEditeazaUtilizator" Content="✏️ Editează" Click="BtnEditeazaUtilizator_Click" Style="{StaticResource ActionButton}" Background="#f59e0b" IsEnabled="False"/>
+                                    <Button x:Name="BtnStergeUtilizator" Content="🗑️ Șterge" Click="BtnStergeUtilizator_Click" Style="{StaticResource ActionButton}" Background="#ef4444" IsEnabled="False"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#334155" Margin="0,0,0,8"/>
+
+                        <!-- Filters Row -->
+                        <WrapPanel Grid.Row="1" VerticalAlignment="Center">
+                            <!-- Filter Criteria -->
+                            <StackPanel Margin="0,0,15,5">
+                                <TextBlock Text="Cauta după:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                <ComboBox x:Name="CboCriteriuCautare" Width="110" SelectedIndex="0" SelectionChanged="CboCriteriuCautare_SelectionChanged">
+                                    <ComboBoxItem Content="General"/>
+                                    <ComboBoxItem Content="ID"/>
+                                    <ComboBoxItem Content="Nume/Username"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- SEARCH TEXT BOX -->
+                            <StackPanel Margin="0,0,15,5">
+                                <TextBlock Text="Text de căutat:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                <Border Background="#0b0f19" CornerRadius="4" Height="28" BorderBrush="#334155" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="30"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="TxtSearch" Grid.Column="0" Background="Transparent" Foreground="White" BorderThickness="0" Padding="5,0" VerticalContentAlignment="Center" FontSize="12" TextChanged="TxtSearch_TextChanged"/>
+                                        <Border Grid.Column="1" Background="#3b82f6" CornerRadius="0,3,3,0">
+                                            <TextBlock Text="🔍" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Category Filter (Only for Products Tab) -->
+                            <StackPanel x:Name="PanelFiltruCategorie" Margin="0,0,15,5" Visibility="Visible">
+                                <TextBlock Text="Categorie:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                <ComboBox x:Name="CboFiltruCategorie" Width="110" SelectionChanged="CboFiltruCategorie_SelectionChanged"/>
+                            </StackPanel>
+
+                            <!-- Date Filter (Only for Orders Tab) -->
+                            <StackPanel x:Name="PanelFiltruData" Margin="0,0,15,5" Visibility="Collapsed">
+                                <TextBlock Text="Dată comandă:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                <DatePicker x:Name="DateFiltru" Width="120" Height="30" SelectedDateChanged="DateFiltru_SelectedDateChanged"/>
+                            </StackPanel>
+
+                            <!-- Price Interval (Only for Products Tab) -->
+                            <StackPanel x:Name="PanelFiltruPret" Orientation="Horizontal" Margin="0,0,15,5" Visibility="Visible">
+                                <StackPanel Margin="0,0,8,0">
+                                    <TextBlock Text="Preț Min:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtFiltruPretMin" Width="70" TextChanged="TxtFiltruPretMin_TextChanged"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="Preț Max:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtFiltruPretMax" Width="70" TextChanged="TxtFiltruPretMax_TextChanged"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- In Stock Checkbox (Only for Products Tab) -->
+                            <StackPanel x:Name="PanelFiltruStoc" Margin="0,0,15,5" VerticalAlignment="Bottom" Visibility="Visible">
+                                <CheckBox x:Name="ChkFiltruStoc" Content="Doar în stoc" Checked="ChkFiltruStoc_Checked" Unchecked="ChkFiltruStoc_Unchecked" Margin="0,0,0,8" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <!-- Options Checkboxes (Only for Products Tab) -->
+                            <StackPanel x:Name="PanelFiltruOptiuni" Margin="0,0,15,5" Orientation="Horizontal" VerticalAlignment="Bottom" Visibility="Visible">
+                                <CheckBox x:Name="ChkFiltruGarantie" Content="Garanție" Checked="ChkFiltruOptiune_Changed" Unchecked="ChkFiltruOptiune_Changed" Margin="0,0,8,8" FontWeight="SemiBold"/>
+                                <CheckBox x:Name="ChkFiltruDrivere" Content="Drivere" Checked="ChkFiltruOptiune_Changed" Unchecked="ChkFiltruOptiune_Changed" Margin="0,0,8,8" FontWeight="SemiBold"/>
+                                <CheckBox x:Name="ChkFiltruLivrare" Content="Livrare R." Checked="ChkFiltruOptiune_Changed" Unchecked="ChkFiltruOptiune_Changed" Margin="0,0,8,8" FontWeight="SemiBold"/>
+                                <CheckBox x:Name="ChkFiltruReturnare" Content="Retur 14z" Checked="ChkFiltruOptiune_Changed" Unchecked="ChkFiltruOptiune_Changed" Margin="0,0,0,8" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <!-- Sort Selection Dropdown -->
+                            <StackPanel x:Name="PanelSortare" Margin="0,0,0,5">
+                                <TextBlock Text="Sortează după:" FontSize="10" Foreground="#64748b" FontWeight="Bold" Margin="0,0,0,3"/>
+                                <ComboBox x:Name="CboSortare" Width="140" SelectionChanged="CboSortare_SelectionChanged"/>
+                            </StackPanel>
+                        </WrapPanel>
+                    </Grid>
+                </Border>
+
+                <!-- WORKING GRIDS & DETAILS VIEW -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- GRIDS BOARD -->
+                    <Border Grid.Column="0" Background="#111827" BorderBrush="#1e293b" BorderThickness="1" CornerRadius="8" Padding="5">
+                        <Grid>
+                            <!-- Products Grid -->
+                            <DataGrid x:Name="GridProduse" Visibility="Visible" AutoGenerateColumns="False" IsReadOnly="True" SelectionChanged="GridProduse_SelectionChanged" BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                                    <DataGridTextColumn Header="Nume Produs" Binding="{Binding Nume}" Width="2*"/>
+                                    <DataGridTextColumn Header="Categorie" Binding="{Binding CategorieProdus}" Width="1.2*"/>
+                                    <DataGridTextColumn Header="Preț (RON)" Binding="{Binding Pret, StringFormat={}{0:N2}}" Width="1*"/>
+                                    <DataGridTextColumn Header="Opțiuni suplimentare" Binding="{Binding OptiuniProdus}" Width="2*"/>
+                                    <DataGridTextColumn Header="Stoc" Binding="{Binding Stoc}" Width="0.8*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Orders Grid -->
+                            <DataGrid x:Name="GridComenzi" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID Comandă" Binding="{Binding Id}" Width="90"/>
+                                    <DataGridTextColumn Header="ID Client" Binding="{Binding IdClient}" Width="80"/>
+                                    <DataGridTextColumn Header="Produse achiziționate" Binding="{Binding ProduseText}" Width="2*"/>
+                                    <DataGridTextColumn Header="Total de plată (RON)" Binding="{Binding Total}" Width="1.2*"/>
+                                    <DataGridTextColumn Header="Data plasării" Binding="{Binding DataComenzii}" Width="1.5*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Users Grid -->
+                            <DataGrid x:Name="GridUtilizatori" Visibility="Collapsed" AutoGenerateColumns="False" IsReadOnly="True" SelectionChanged="GridUtilizatori_SelectionChanged" BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                                    <DataGridTextColumn Header="Nume Complet" Binding="{Binding Nume}" Width="2*"/>
+                                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="1.5*"/>
+                                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
+                                    <DataGridTextColumn Header="Rol Utilizator" Binding="{Binding Rol}" Width="1*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Empty Data State -->
+                            <StackPanel x:Name="PanelEmpty" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="⚠️" FontSize="36" Foreground="#64748b" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                <TextBlock Text="Nu s-a găsit niciun element care să corespundă criteriilor." FontSize="13" Foreground="#94a3b8" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- DETAILS CARD VIEW -->
+                    <Border x:Name="PanelDetaliiProdus" Grid.Column="1" Width="280" Margin="15,0,0,0" BorderBrush="#1e293b" BorderThickness="1" Background="#1e293b" CornerRadius="8" Padding="15" Visibility="Visible">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Text="Detalii Produs Selectat" FontWeight="Bold" FontSize="14" Foreground="White" Margin="0,0,0,12"/>
+                            <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#334155"/>
+
+                            <!-- Dynamic Name -->
+                            <TextBlock Grid.Row="1" x:Name="TxtDetaliiNume" 
+                                       Text="{Binding ElementName=GridProduse, Path=SelectedItem.Nume, TargetNullValue='Niciun produs selectat'}" 
+                                       TextWrapping="Wrap" Margin="0,15,0,5" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                                       
+                            <!-- Dynamic Price -->
+                            <TextBlock Grid.Row="2" x:Name="TxtDetaliiPret" 
+                                       Text="{Binding ElementName=GridProduse, Path=SelectedItem.Pret, StringFormat='Preț: {0:N2} RON', TargetNullValue=''}" 
+                                       Margin="0,0,0,15" Foreground="#10b981" FontSize="18" FontWeight="ExtraBold"/>
+                            
+                            <!-- Dynamic Options ListBox -->
+                            <StackPanel Grid.Row="3">
+                                <TextBlock Text="Opțiuni active:" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,8"/>
+                                <ListBox x:Name="ListOptiuniProdus" MinHeight="150" Background="#111827" BorderBrush="#334155" BorderThickness="1" Padding="5" Foreground="White">
+                                    <!-- Populated in code-behind -->
+                                </ListBox>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
